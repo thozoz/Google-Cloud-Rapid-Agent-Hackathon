@@ -2,6 +2,7 @@ import os
 import json
 import re
 import datetime
+import math
 from pydantic import BaseModel, Field
 from typing import List, Literal
 from dotenv import load_dotenv
@@ -55,7 +56,7 @@ Evaluate each hackathon against the developer profile and score it 1-10.
 === INSTRUCTIONS ===
 - Score 10 = perfect stack/interest/experience alignment.
 - Score 1  = no alignment at all.
-- Provide a concise one-line reason under 120 characters.
+- Provide a specific one-line reason (max 150 chars). Mention exactly which parts of the developer's tech stack or interests matched (or failed to match) the hackathon's tags and theme.
 - You MUST respond ONLY with valid JSON matching this exact schema:
   {{"matches": [{{"url": "...", "match_score": <int>, "match_reason": "..."}}]}}
 - No extra text, no markdown fences, just raw JSON.
@@ -88,7 +89,8 @@ Evaluate the following hackathon against the developer profile and score it 1-10
 === INSTRUCTIONS ===
 - Score 10 = perfect stack/interest/experience alignment.
 - Score 1  = no alignment at all.
-- Provide a concise one-line reason under 120 characters.
+- Use the FULL spectrum of numbers between 1 and 10 (e.g., 1, 3, 5, 7, 9 are perfectly fine). Do NOT restrict yourself to even numbers. Be highly granular.
+- Provide a specific one-line reason (max 150 chars). Mention exactly which parts of the developer's tech stack or interests matched (or failed to match) the hackathon's tags and theme. Be very specific about technologies.
 - You MUST respond ONLY with valid JSON matching this exact schema:
   {{"match_score": <int>, "match_reason": "..."}}
 - No extra text, no markdown fences, just raw JSON.
@@ -149,15 +151,44 @@ def _match_with_groq(profile: dict, hackathons: list) -> list:
             )
             raw_text = response.choices[0].message.content.strip()
 
+            # Log raw model output for debugging (helps identify formatting issues)
+            print(f"  [Groq RAW OUTPUT] {h.get('title')}: {raw_text}")
+
             # Strip markdown code fences if the model wraps in ```json ... ```
             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
             raw_text = re.sub(r"\s*```$", "", raw_text)
 
             data = json.loads(raw_text)
-            score = data.get("match_score")
+            score_raw = data.get("match_score")
             reason = data.get("match_reason")
 
+            # Normalize score using round-half-up to avoid ties-to-even bias
+            score = None
+            try:
+                if isinstance(score_raw, (int, float)):
+                    score = int(math.floor(float(score_raw) + 0.5))
+                elif isinstance(score_raw, str):
+                    m = re.search(r"(\d+(?:\.\d+)?)", score_raw)
+                    if m:
+                        v = float(m.group(1))
+                        score = int(math.floor(v + 0.5))
+            except Exception as _e:
+                print(f"  [Groq] Warning: failed to parse score '{score_raw}': {_e}")
+
+            # Clamp score to 1-10
+            if isinstance(score, int):
+                if score < 1:
+                    score = 1
+                if score > 10:
+                    score = 10
+
+            # Only accept valid parsed score and non-empty reason
             if score is not None and reason:
+                # Trim reason to 150 chars to match downstream expectations
+                reason = reason.strip()
+                if len(reason) > 150:
+                    reason = reason[:147].rstrip() + "..."
+
                 results.append({
                     "url": h.get("url"),
                     "match_score": score,
