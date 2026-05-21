@@ -1,194 +1,241 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hackathon Discovery & Tracking Agent</title>
-    <!-- Google Fonts: Inter and Outfit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Premium Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="index.css">
-</head>
-<body>
-    <!-- Background Radiant Glow Elements -->
-    <div class="bg-glow bg-glow-primary"></div>
-    <div class="bg-glow bg-glow-secondary"></div>
-
-    <div class="app-container">
-        <!-- Sidebar - Step 1: User Profile -->
-        <aside class="profile-sidebar glass-panel">
-            <div class="brand">
-                <div class="brand-logo">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>
-                <div>
-                    <h1>Antigravity</h1>
-                    <p>Hackathon Discovery Agent</p>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <h2><i class="fa-solid fa-user-gear"></i> Developer Profile</h2>
-                <form id="profile-form">
-                    <div class="form-group">
-                        <label for="tech-stack">Tech Stack</label>
-                        <p class="field-desc">Comma-separated technologies you use</p>
-                        <input type="text" id="tech-stack" placeholder="Python, FastAPI, React, PyTorch" required>
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Hackathon Discovery &amp; Tracking Agent</title>
+<!-- Google Fonts: Inter and IBM Plex Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#0a0a0a",
+                        "primary-fixed-dim": "#00e478",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#454747",
+                        "tertiary": "#fdfafa",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-secondary-fixed-variant": "#454747",
+                        "primary-fixed": "#60ff98",
+                        "on-primary-fixed-variant": "#005227",
+                        "primary": "#00ff87",
+                        "surface-dim": "#131313",
+                        "on-secondary": "#2f3131",
+                        "secondary": "#c6c6c7",
+                        "on-tertiary-fixed": "#1b1b1c",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-container": "#00ff87",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-container": "#201f1f",
+                        "surface-variant": "#353534",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-tint": "#00e478",
+                        "outline": "#849585",
+                        "on-primary": "#003919",
+                        "text-muted": "#888888",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "outline-variant": "#3b4b3d",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-on-surface": "#313030",
+                        "status-warning": "#ffcc00",
+                        "on-tertiary": "#303030",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-primary-container": "#007138",
+                        "on-primary-fixed": "#00210c",
+                        "on-error": "#690005",
+                        "surface-bright": "#3a3939",
+                        "error-container": "#93000a",
+                        "surface": "#131313",
+                        "status-error": "#ff4d4d",
+                        "surface-container-highest": "#353534",
+                        "tertiary-container": "#e1dedd",
+                        "on-tertiary-container": "#626261",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-container": "#b4b5b5",
+                        "inverse-primary": "#006d36",
+                        "on-surface-variant": "#b9cbb9",
+                        "on-background": "#e5e2e1",
+                        "tertiary-fixed": "#e5e2e1",
+                        "border-subtle": "#1f1f1f",
+                        "surface-container-lowest": "#0e0e0e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "stats-lg": ["IBM Plex Mono"],
+                        "data-mono": ["IBM Plex Mono"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-mono": ["IBM Plex Mono"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: transparent; border: 1px solid #1f1f1f; border-radius: 4px; color: #e5e2e1; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; }</style>
+<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: transparent; border: 1px solid #1f1f1f; border-radius: 4px; color: #e5e2e1; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; }</style></head>
+<body class="min-h-screen flex text-body-md antialiased selection:bg-primary selection:text-background">
+<!-- Sidebar - Config Panel -->
+<aside class="w-80 border-l-4 bg-[#131313] border-r border-[#1f1f1f] flex flex-col p-6 overflow-y-auto" style="border-left: 4px solid #2a2a2a;">
+<div class="mb-10">
+<div class="flex items-center gap-3 mb-2" style="color: #e8e8e8;">
+<span class="material-symbols-outlined text-2xl">terminal</span>
+<h1 class="font-headline-md m-0">Antigravity</h1>
+</div>
+<p class="text-text-muted mono text-xs uppercase tracking-wider">Discovery Agent_v1.0</p>
+</div>
+<div class="flex-1">
+<h2 class="flex items-center gap-2 font-label-mono text-text-muted uppercase mb-6 pb-2 border-b border-border-subtle">
+<span class="material-symbols-outlined text-sm">settings</span> Developer Profile
+            </h2>
+<form class="space-y-5" id="profile-form">
+<div class="form-group flex flex-col gap-1">
+<label class="font-label-mono text-on-surface" for="tech-stack">Tech Stack</label>
+<input id="tech-stack" placeholder="Python, React..." required="" type="text">
+</div>
+<div class="form-group flex flex-col gap-1">
+<label class="font-label-mono text-on-surface" for="interests">Interests &amp; Domains</label>
+<input id="interests" placeholder="AI, Web3..." required="" type="text">
+</div>
+<div class="form-group flex flex-col gap-1">
+<label class="font-label-mono text-on-surface" for="experience-level">Experience Level</label>
+<select id="experience-level" required="">
+<option value="Beginner">Beginner (1-2 hackathons)</option>
+<option selected="" value="Intermediate">Intermediate</option>
+<option value="Advanced">Advanced (Veteran)</option>
+</select>
+</div>
+<div class="form-group flex flex-col gap-1">
+<label class="font-label-mono text-on-surface" for="weekly-availability">Availability</label>
+<select id="weekly-availability" required="">
+<option value="5-10 hours">Light (5-10 hrs/wk)</option>
+<option selected="" value="10-20 hours">Moderate (10-20 hrs/wk)</option>
+<option value="20+ hours">Full-Time (20+ hrs/wk)</option>
+</select>
+</div>
+<button class="w-full mt-4 bg-transparent border hover:text-background transition-colors rounded py-2 px-4 font-label-mono flex items-center justify-center gap-2 hover:bg-[#e8e8e8]" id="btn-save-profile" type="submit" style="border-color: #e8e8e8; color: #e8e8e8;">
+<span class="material-symbols-outlined text-sm">save</span> Save Config
+                </button>
+</form>
+</div>
+<div class="mt-8 pt-4 border-t border-border-subtle mono text-[11px] text-text-muted flex items-start gap-2" id="profile-status">
+<span class="w-2 h-2 rounded-full mt-1 shrink-0" style="background-color: rgb(0, 255, 135);"></span>
+<span class="">Profile unconfigured. Initialization pending.</span>
+</div>
+</aside>
+<!-- Main Dashboard View -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- Header -->
+<header class="px-8 py-6 border-b border-border-subtle flex items-center justify-between bg-background">
+<div class="flex items-center gap-6">
+<!-- Inline Stats -->
+<div class="flex items-center gap-6 mono text-sm">
+<div class="flex items-center gap-2">
+<span class="text-text-muted uppercase">Scraped:</span>
+<span class="font-medium" id="stat-scraped-count" style="color: #e8e8e8;">0</span>
+</div>
+<div class="w-px h-4 bg-border-subtle"></div>
+<div class="flex items-center gap-2">
+<span class="text-text-muted uppercase">Matched:</span>
+<span class="font-medium" id="stat-matched-count" style="color: #e8e8e8;">0</span>
+</div>
+<div class="w-px h-4 bg-border-subtle"></div>
+<div class="flex items-center gap-2">
+<span class="text-text-muted uppercase">Tracked:</span>
+<span class="font-medium" id="stat-tracked-count" style="color: #e8e8e8;">0</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mono text-xs">
+<label class="text-text-muted" for="ai-provider">PROVIDER:</label>
+<select class="py-1 px-2 text-xs w-32 border-border-subtle" disabled="" id="ai-provider">
+<option value="gemini">Loading...</option>
+</select>
+</div>
+<button class="bg-transparent border border-border-subtle text-on-surface transition-colors rounded py-1.5 px-4 font-label-mono flex items-center gap-2" disabled="" id="btn-trigger-scrape" style="border-color: #e8e8e8; color: #e8e8e8;">
+<span class="material-symbols-outlined text-sm fa-spin hidden" id="scrape-loader">autorenew</span>
+<span class="material-symbols-outlined text-sm" id="scrape-icon">sync</span> Scrape
+                </button>
+<button class="bg-transparent border border-border-subtle text-on-surface transition-colors rounded py-1.5 px-4 font-label-mono flex items-center gap-2" id="btn-trigger-reminders" style="border-color: #e8e8e8; color: #e8e8e8;">
+<span class="material-symbols-outlined text-sm">notifications</span> Alerts
+                </button>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="flex-1 overflow-y-auto p-8">
+<!-- Tab Navigation -->
+<div class="border-b border-border-subtle mb-6 flex gap-6 font-label-mono">
+<button class="tab-btn pb-3 px-1 text-on-surface hover:text-primary transition-colors flex items-center gap-2 active border-b-2 border-[#e8e8e8] text-[#e8e8e8]" data-tab="tab-recommendations">
+<span class="material-symbols-outlined text-sm" style="color: rgb(232, 232, 232);">radar</span> Recommendations
+                </button>
+<button class="tab-btn pb-3 px-1 hover:text-primary transition-colors flex items-center gap-2 text-text-muted" data-tab="tab-tracked">
+<span class="material-symbols-outlined text-sm" style="color: rgb(232, 232, 232);">fact_check</span> Tracked
+                </button>
+</div>
+<!-- Tab 1: Recommendations List -->
+<div class="tab-content block" id="tab-recommendations">
+<!-- Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="recommendations-grid">
+<div class="col-span-full py-12 mono text-text-muted flex items-center gap-2">
+<span class="" style="color: rgb(232, 232, 232);">→</span> No recommendations available. Save profile to initialize scan.
                     </div>
-
-                    <div class="form-group">
-                        <label for="interests">Interests & Domains</label>
-                        <p class="field-desc">AI, Web3, Social Good, Mobile Apps</p>
-                        <input type="text" id="interests" placeholder="Generative AI, Agentic Workflows, Databases" required>
+</div>
+</div>
+<!-- Tab 2: Tracked Dashboard -->
+<div class="tab-content hidden" id="tab-tracked">
+<!-- Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="tracked-grid">
+<div class="col-span-full py-12 mono text-text-muted flex items-center gap-2">
+<span class="" style="color: rgb(232, 232, 232);">→</span> No hackathons tracked yet.
                     </div>
-
-                    <div class="form-group">
-                        <label for="experience-level">Experience Level</label>
-                        <div class="select-wrapper">
-                            <select id="experience-level" required>
-                                <option value="Beginner">Beginner (1-2 hackathons)</option>
-                                <option value="Intermediate" selected>Intermediate (Comfortable coder)</option>
-                                <option value="Advanced">Advanced (Hackathon veteran / Tech lead)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="weekly-availability">Weekly Availability</label>
-                        <div class="select-wrapper">
-                            <select id="weekly-availability" required>
-                                <option value="5-10 hours">Light (5-10 hours/week)</option>
-                                <option value="10-20 hours" selected>Moderate (10-20 hours/week)</option>
-                                <option value="20+ hours">Full-Time Commitment (20+ hours/week)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-block" id="btn-save-profile">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Profile
-                    </button>
-                </form>
-            </div>
-            
-            <div class="sidebar-status glass-panel-inner" id="profile-status">
-                <span class="status-dot status-dot-warning"></span>
-                <span>Profile not configured. Please complete fields above.</span>
-            </div>
-        </aside>
-
-        <!-- Main Dashboard View -->
-        <main class="dashboard-main">
-            <!-- Top Actions / Header -->
-            <header class="dashboard-header glass-panel">
-                <div class="header-intro">
-                    <h2>Welcome to Hackathon Command Center</h2>
-                    <p>Scrape hackathons, match them with Gemini or Groq, and track deadlines autonomously.</p>
-                </div>
+</div>
+</div>
+</div>
+</main>
+<!-- Notification Toast -->
+<div class="fixed bottom-6 right-6 flex flex-col gap-2 z-50 mono text-sm" id="toast-container"></div>
+<script src="app.js"></script>
+<script>
+        // Simple tab switching logic for visual purposes, assuming app.js handles primary logic
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('active', 'border-b-2', 'border-primary', 'text-primary');
+                    b.classList.add('text-text-muted');
+                });
+                btn.classList.add('active', 'border-b-2', 'border-primary', 'text-primary');
+                btn.classList.remove('text-text-muted');
                 
-                <div class="header-actions">
-                    <div class="provider-select-wrap">
-                        <label for="ai-provider">AI Provider</label>
-                        <div class="select-wrapper">
-                            <select id="ai-provider" disabled>
-                                <option value="gemini">Loading providers...</option>
-                            </select>
-                        </div>
-                    </div>
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    if(content.id === tabId) {
+                        content.classList.remove('hidden');
+                        content.classList.add('block');
+                    } else {
+                        content.classList.add('hidden');
+                        content.classList.remove('block');
+                    }
+                });
+            });
+        });
+    </script>
 
-                    <button class="btn btn-secondary" id="btn-trigger-scrape" disabled>
-                        <i class="fa-solid fa-circle-notch fa-spin btn-loader" id="scrape-loader" style="display:none;"></i>
-                        <i class="fa-solid fa-sync" id="scrape-icon"></i> Scrape & Match
-                    </button>
-                    
-                    <button class="btn btn-accent" id="btn-trigger-reminders">
-                        <i class="fa-solid fa-bell"></i> Send Alerts
-                    </button>
-                </div>
-            </header>
 
-            <!-- Dashboard Stats Summary -->
-            <section class="stats-grid">
-                <div class="stat-card glass-panel">
-                    <div class="stat-icon icon-purple"><i class="fa-solid fa-bullseye"></i></div>
-                    <div class="stat-details">
-                        <span class="stat-value" id="stat-scraped-count">0</span>
-                        <span class="stat-label">Total Scraped Hackathons</span>
-                    </div>
-                </div>
-                <div class="stat-card glass-panel">
-                    <div class="stat-icon icon-cyan"><i class="fa-solid fa-star"></i></div>
-                    <div class="stat-details">
-                        <span class="stat-value" id="stat-matched-count">0</span>
-                        <span class="stat-label">Strong Matches (Score &ge; 7)</span>
-                    </div>
-                </div>
-                <div class="stat-card glass-panel">
-                    <div class="stat-icon icon-pink"><i class="fa-solid fa-bookmark"></i></div>
-                    <div class="stat-details">
-                        <span class="stat-value" id="stat-tracked-count">0</span>
-                        <span class="stat-label">Active Tracked Hackathons</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tab Navigation -->
-            <div class="tabs-container">
-                <nav class="tabs-nav glass-panel">
-                    <button class="tab-btn active" data-tab="tab-recommendations">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Smart Recommendations
-                    </button>
-                    <button class="tab-btn" data-tab="tab-tracked">
-                        <i class="fa-solid fa-calendar-check"></i> Tracked Dashboard
-                    </button>
-                </nav>
-
-                <!-- Tab 1: Recommendations List -->
-                <div class="tab-content active" id="tab-recommendations">
-                    <div class="content-header">
-                        <div>
-                            <h3>Recommended for You</h3>
-                            <p>Scored out of 10 by your selected AI based on stack match, domains, and timeline compatibility.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Hackathons recommendation Grid -->
-                    <div class="cards-grid" id="recommendations-grid">
-                        <div class="empty-state">
-                            <i class="fa-solid fa-user-gear"></i>
-                            <h4>Please save your profile first</h4>
-                            <p>Once your profile is saved, you can click "Scrape & Match" to discover hackathons matched to your skillset.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab 2: Tracked Dashboard -->
-                <div class="tab-content" id="tab-tracked">
-                    <div class="content-header">
-                        <div>
-                            <h3>Your Tracked Hackathons</h3>
-                            <p>Active hackathons you're preparing for. Background agent alerts you within 3 days of deadline.</p>
-                        </div>
-                    </div>
-
-                    <!-- Tracked Grid -->
-                    <div class="cards-grid" id="tracked-grid">
-                        <div class="empty-state">
-                            <i class="fa-solid fa-calendar-day"></i>
-                            <h4>No tracked hackathons yet</h4>
-                            <p>Browse the "Smart Recommendations" tab and click "Track" on hackathons you want to join.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Notification Toast -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <script src="app.js"></script>
-</body>
-</html>
+</body></html>

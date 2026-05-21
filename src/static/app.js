@@ -162,10 +162,10 @@ async function loadProfile() {
             availabilitySelect.value = userProfile.weekly_availability;
             
             // Update sidebar status
-            profileStatus.className = "sidebar-status glass-panel-inner status-configured";
+            profileStatus.className = "sidebar-status border-l border-[#2a2a2a] pl-4";
             profileStatus.innerHTML = `
                 <span class="status-dot status-dot-success"></span>
-                <span>Profile connected to MongoDB Atlas.</span>
+                <span class="font-mono text-[10px] text-[#e8e8e8]">DB_CONNECTED: OK</span>
             `;
             
             // Enable Scraping when a provider is available
@@ -209,10 +209,10 @@ async function handleProfileSubmit(e) {
             userProfile = data.profile;
             
             // Update sidebar status
-            profileStatus.className = "sidebar-status glass-panel-inner status-configured";
+            profileStatus.className = "sidebar-status border-l border-[#2a2a2a] pl-4";
             profileStatus.innerHTML = `
                 <span class="status-dot status-dot-success"></span>
-                <span>Profile connected to MongoDB Atlas.</span>
+                <span class="font-mono text-[10px] text-[#e8e8e8]">DB_CONNECTED: OK</span>
             `;
             
             // Enable scrape button when a provider is available
@@ -333,10 +333,9 @@ function renderRecommendations() {
     
     if (hackathonsList.length === 0) {
         recommendationsGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-cloud-arrow-down"></i>
-                <h4>No hackathons found in database</h4>
-                <p>Click the "Scrape & Match" button in the top right to crawl Devpost and match them using the selected AI provider.</p>
+            <div class="col-span-full py-12 flex flex-col items-start font-mono text-[#e8e8e8]">
+                <p class="text-xs opacity-60">→ No hackathons found in database.</p>
+                <p class="text-xs opacity-40 mt-1">SCRAPE_REQUIRED: TRUE</p>
             </div>
         `;
         return;
@@ -347,81 +346,74 @@ function renderRecommendations() {
         const score = h.match_score !== undefined ? h.match_score : "N/A";
         
         // Define score badge type & card styling class
-        let badgeClass = "score-badge-low";
-        let cardClass = "";
+        let badgeClass = "text-[#666]";
         if (typeof score === "number") {
             if (score >= 7) {
-                badgeClass = "score-badge-high";
-                cardClass = "match-high";
+                badgeClass = "text-[#00ff87]";
             } else if (score >= 4) {
-                badgeClass = "score-badge-medium";
-                cardClass = "match-medium";
+                badgeClass = "text-[#fbbf24]";
             }
         }
         
         // Calculate dynamic deadline text & styles
         let deadlineLabel = h.deadline_raw;
         let isDeadlineUrgent = false;
-        
+        let isDeadlineImminent = false;
+        let _daysLeft = null;
+
         if (h.deadline) {
-            const daysLeft = Math.ceil((new Date(h.deadline) - new Date()) / (1000 * 60 * 60 * 24));
-            if (daysLeft >= 0) {
-                deadlineLabel = `${daysLeft} days left (${h.deadline_raw})`;
-                if (daysLeft <= 3) isDeadlineUrgent = true;
+            _daysLeft = Math.ceil((new Date(h.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+            if (_daysLeft >= 0) {
+                deadlineLabel = `${_daysLeft}d [${h.deadline_raw}]`;
+                if (_daysLeft <= 7) isDeadlineUrgent = true; // yellow for 3-7d
+                if (_daysLeft <= 3) isDeadlineImminent = true; // red for <=3d
             } else {
-                deadlineLabel = `Ended (${h.deadline_raw})`;
+                deadlineLabel = `EXPIRED [${h.deadline_raw}]`;
             }
         }
         
         const card = document.createElement("div");
-        card.className = `hackathon-card glass-panel ${cardClass}`;
+        card.className = "flex flex-col gap-4 p-5 bg-[#1c1b1b] border border-[#1f1f1f] rounded-sm hover:border-[#333] transition-colors group";
         
         card.innerHTML = `
-            <div class="card-top">
-                <div class="card-title-area">
-                    <span class="card-org">${escapeHTML(h.organization)}</span>
-                    <h4>${escapeHTML(h.title)}</h4>
+            <div class="flex justify-between items-start">
+                <div class="flex flex-col gap-1">
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-[#666]">${escapeHTML(h.organization)}</span>
+                    <h4 class="font-bold text-[#e8e8e8] text-sm leading-tight">${escapeHTML(h.title)}</h4>
                 </div>
-                <div class="score-badge ${badgeClass}">
-                    <span>${score}</span>
-                    <span class="score-badge-label">Fit</span>
+                <div class="flex flex-col items-end font-mono">
+                    <span class="text-lg font-bold ${badgeClass}">${score}</span>
+                    <span class="text-[8px] text-[#666] uppercase tracking-tighter mt-[-4px]">MATCH_SCORE</span>
                 </div>
             </div>
             
-            <div class="tags-list">
-                ${(h.tags || []).slice(0, 4).map(tag => `<span class="tag-chip">${escapeHTML(tag)}</span>`).join("")}
+            <div class="flex flex-wrap gap-2">
+                ${(h.tags || []).slice(0, 3).map(tag => `<span class="px-2 py-0.5 font-mono text-[10px] bg-[#111] border border-[#222] text-[#888] rounded-sm">${escapeHTML(tag)}</span>`).join("")}
             </div>
             
-            <div class="card-details">
-                <div class="detail-item">
-                    <span class="detail-label">🏆 Prize Pool</span>
-                    <span class="detail-val prize-highlight">${escapeHTML(h.prize_pool)}</span>
+            <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px]">
+                <div class="flex flex-col gap-1">
+                    <span class="text-[#666] uppercase tracking-tighter">PRIZE_POOL</span>
+                    <span class="text-[#00ff87]">${escapeHTML(h.prize_pool)}</span>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-label">👥 Eligibility</span>
-                    <span class="detail-val">${escapeHTML(h.eligibility)}</span>
-                </div>
-                <div class="detail-item" style="grid-column: span 2;">
-                    <span class="detail-label">📅 Deadline</span>
-                    <span class="detail-val ${isDeadlineUrgent ? 'urgent-highlight' : ''}">
-                        <i class="fa-regular fa-clock"></i> ${escapeHTML(deadlineLabel)}
-                    </span>
+                <div class="flex flex-col gap-1">
+                    <span class="text-[#666] uppercase tracking-tighter">DEADLINE</span>
+                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')}">${escapeHTML(deadlineLabel)}</span>
                 </div>
             </div>
             
             ${h.match_reason ? `
-            <div class="ai-reason-bubble">
-                <i class="fa-solid fa-robot"></i>
-                <p>${escapeHTML(h.match_reason)}</p>
+            <div class="mt-2 p-3 bg-[#111] border-l border-[#222] font-mono text-[11px] text-[#888] leading-relaxed italic">
+                <span class="text-[#444] mr-1">ANALYSIS:</span> ${escapeHTML(h.match_reason)}
             </div>
             ` : ""}
             
-            <div class="card-footer">
-                <a href="${h.url}" target="_blank" class="card-link">
-                    View on Devpost <i class="fa-solid fa-external-link"></i>
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-[#1f1f1f]">
+                <a href="${h.url}" target="_blank" class="font-mono text-[11px] text-[#666] hover:text-[#e8e8e8] flex items-center gap-2 transition-colors">
+                    LINK <i class="fa-solid fa-arrow-right text-[8px]"></i>
                 </a>
-                <button class="btn-track ${isTracked ? 'active' : ''}" data-url="${h.url}">
-                    <i class="fa-solid ${isTracked ? 'fa-bookmark' : 'fa-plus'}"></i> ${isTracked ? 'Tracked' : 'Track'}
+                <button class="btn-track font-mono text-[10px] px-3 py-1 border transition-all ${isTracked ? 'bg-[#ff4757] border-[#ff4757] text-white' : 'bg-transparent border-[#2a2a2a] text-[#666] hover:border-[#e8e8e8] hover:text-[#e8e8e8]'}" data-url="${h.url}">
+                    ${isTracked ? 'UNTRACK' : 'TRACK_PROJECT'}
                 </button>
             </div>
         `;
@@ -440,10 +432,9 @@ function renderTracked() {
     
     if (trackedList.length === 0) {
         trackedGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-calendar-day"></i>
-                <h4>No tracked hackathons yet</h4>
-                <p>Browse the "Smart Recommendations" tab and click "Track" on hackathons you want to join.</p>
+            <div class="col-span-full py-12 flex flex-col items-start font-mono text-[#e8e8e8]">
+                <p class="text-xs opacity-60">→ No tracked projects found.</p>
+                <p class="text-xs opacity-40 mt-1">TRACK_LIST: EMPTY</p>
             </div>
         `;
         return;
@@ -451,57 +442,53 @@ function renderTracked() {
     
     trackedList.forEach(h => {
         const score = h.match_score !== undefined ? h.match_score : "N/A";
-        let badgeClass = "score-badge-low";
-        if (typeof score === "number" && score >= 7) badgeClass = "score-badge-high";
-        else if (typeof score === "number" && score >= 4) badgeClass = "score-badge-medium";
+        let badgeClass = "text-[#666]";
+        if (typeof score === "number" && score >= 7) badgeClass = "text-[#00ff87]";
+        else if (typeof score === "number" && score >= 4) badgeClass = "text-[#fbbf24]";
         
         let deadlineLabel = h.deadline_raw;
         let isDeadlineUrgent = false;
+        let isDeadlineImminent = false;
         
         if (h.deadline) {
             const daysLeft = Math.ceil((new Date(h.deadline) - new Date()) / (1000 * 60 * 60 * 24));
             if (daysLeft >= 0) {
-                deadlineLabel = `${daysLeft} days left (${h.deadline_raw})`;
+                deadlineLabel = `${daysLeft}d [${h.deadline_raw}]`;
                 if (daysLeft <= 3) isDeadlineUrgent = true;
             } else {
-                deadlineLabel = `Ended (${h.deadline_raw})`;
+                deadlineLabel = `EXPIRED [${h.deadline_raw}]`;
             }
         }
         
         const card = document.createElement("div");
-        card.className = "hackathon-card glass-panel";
+        card.className = "flex flex-col gap-4 p-5 bg-[#1c1b1b] border border-[#1f1f1f] rounded-sm hover:border-[#333] transition-colors group";
         
         card.innerHTML = `
-            <div class="card-top">
-                <div class="card-title-area">
-                    <span class="card-org">${escapeHTML(h.organization)}</span>
-                    <h4>${escapeHTML(h.title)}</h4>
+            <div class="flex justify-between items-start">
+                <div class="flex flex-col gap-1">
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-[#666]">${escapeHTML(h.organization)}</span>
+                    <h4 class="font-bold text-[#e8e8e8] text-sm leading-tight">${escapeHTML(h.title)}</h4>
                 </div>
-                <div class="score-badge ${badgeClass}">
-                    <span>${score}</span>
-                    <span class="score-badge-label">Fit</span>
+                <div class="font-mono text-lg font-bold ${badgeClass}">${score}</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px]">
+                <div class="flex flex-col gap-1">
+                    <span class="text-[#666] uppercase tracking-tighter">PRIZE_POOL</span>
+                    <span class="text-[#00ff87]">${escapeHTML(h.prize_pool)}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span class="text-[#666] uppercase tracking-tighter">DEADLINE</span>
+                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')}">${escapeHTML(deadlineLabel)}</span>
                 </div>
             </div>
             
-            <div class="card-details">
-                <div class="detail-item">
-                    <span class="detail-label">🏆 Prize Pool</span>
-                    <span class="detail-val prize-highlight">${escapeHTML(h.prize_pool)}</span>
-                </div>
-                <div class="detail-item" style="grid-column: span 2;">
-                    <span class="detail-label">📅 Deadline</span>
-                    <span class="detail-val ${isDeadlineUrgent ? 'urgent-highlight' : ''}">
-                        <i class="fa-regular fa-clock"></i> ${escapeHTML(deadlineLabel)}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="card-footer">
-                <a href="${h.url}" target="_blank" class="card-link">
-                    View Submission Guidelines <i class="fa-solid fa-external-link"></i>
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-[#1f1f1f]">
+                <a href="${h.url}" target="_blank" class="font-mono text-[11px] text-[#666] hover:text-[#e8e8e8] flex items-center gap-2 transition-colors">
+                    GUIDELINES <i class="fa-solid fa-arrow-right text-[8px]"></i>
                 </a>
-                <button class="btn-track active" data-url="${h.url}">
-                    <i class="fa-solid fa-bookmark"></i> Untrack
+                <button class="btn-track font-mono text-[10px] px-3 py-1 border bg-[#ff4757] border-[#ff4757] text-white rounded-sm hover:opacity-80 transition-opacity" data-url="${h.url}">
+                    UNTRACK
                 </button>
             </div>
         `;

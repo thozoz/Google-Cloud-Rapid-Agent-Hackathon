@@ -61,17 +61,52 @@ Evaluate each hackathon against the developer profile and score it 1-10.
 - No extra text, no markdown fences, just raw JSON.
 """
 
+def _build_single_prompt(profile: dict, h: dict) -> str:
+    developer_profile_str = f"""
+=== DEVELOPER PROFILE ===
+- Tech Stack: {', '.join(profile.get('tech_stack', []))}
+- Interests:  {', '.join(profile.get('interests', []))}
+- Experience: {profile.get('experience_level', 'Intermediate')}
+- Availability: {profile.get('weekly_availability', '10 hours')} per week
+"""
+    hackathon_data = {
+        "title": h.get("title"),
+        "url": h.get("url"),
+        "tags": h.get("tags", []),
+        "prize_pool": h.get("prize_pool", "N/A"),
+        "eligibility": h.get("eligibility", "Open"),
+    }
+
+    return f"""You are an expert AI agent specializing in hackathon matching.
+Evaluate the following hackathon against the developer profile and score it 1-10.
+
+{developer_profile_str}
+
+=== HACKATHON TO EVALUATE ===
+{json.dumps(hackathon_data, indent=2)}
+
+=== INSTRUCTIONS ===
+- Score 10 = perfect stack/interest/experience alignment.
+- Score 1  = no alignment at all.
+- Provide a concise one-line reason under 120 characters.
+- You MUST respond ONLY with valid JSON matching this exact schema:
+  {{"match_score": <int>, "match_reason": "..."}}
+- No extra text, no markdown fences, just raw JSON.
+"""
+
 # ---------------------------------------------------------------------------
 # Provider: Gemini 2.0 Flash
 # ---------------------------------------------------------------------------
 
-def _match_with_gemini(prompt: str) -> list:
+def _match_with_gemini(profile: dict, hackathons: list) -> list:
     from google import genai
     from google.genai import types
 
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY is not set in your .env file.")
+
+    prompt = _build_prompt(profile, hackathons)
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
@@ -90,7 +125,7 @@ def _match_with_gemini(prompt: str) -> list:
 # Provider: Groq — Llama 70B
 # ---------------------------------------------------------------------------
 
-def _match_with_groq(prompt: str) -> list:
+def _match_with_groq(profile: dict, hackathons: list) -> list:
     from groq import Groq
 
     api_key = os.getenv("GROQ_API_KEY")
@@ -98,21 +133,44 @@ def _match_with_groq(prompt: str) -> list:
         raise ValueError("GROQ_API_KEY is not set in your .env file.")
 
     client = Groq(api_key=api_key)
-    response = client.chat.completions.create(
-        model="llama3-70b-8192",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-        max_tokens=4096,
-    )
+    results = []
 
-    raw_text = response.choices[0].message.content.strip()
+    print(f"[Groq API] Starting individual evaluation for {len(hackathons)} hackathons...")
 
-    # Strip markdown code fences if the model wraps in ```json ... ```
-    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-    raw_text = re.sub(r"\s*```$", "", raw_text)
+    for h in hackathons:
+        try:
+            prompt = _build_single_prompt(profile, h)
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+                max_tokens=1024,
+                response_format={"type": "json_object"}
+            )
+            raw_text = response.choices[0].message.content.strip()
 
-    data = json.loads(raw_text)
-    return data.get("matches", [])
+            # Strip markdown code fences if the model wraps in ```json ... ```
+            raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+            raw_text = re.sub(r"\s*```$", "", raw_text)
+
+            data = json.loads(raw_text)
+            score = data.get("match_score")
+            reason = data.get("match_reason")
+
+            if score is not None and reason:
+                results.append({
+                    "url": h.get("url"),
+                    "match_score": score,
+                    "match_reason": reason
+                })
+                print(f"  [Groq] Evaluated '{h.get('title')}' -> Score: {score}")
+            else:
+                print(f"  [Groq] Warning: Missing score or reason for '{h.get('title')}': {raw_text}")
+
+        except Exception as e:
+            print(f"  [Groq API Error] Failed to evaluate '{h.get('title')}': {e}")
+
+    return results
 
 # ---------------------------------------------------------------------------
 # Dispatcher — call this from main.py
@@ -146,10 +204,8 @@ def match_hackathons_with_ai(provider: str = "gemini") -> bool:
 
     print(f"[Matcher] Starting with provider='{provider}' for {len(hackathons)} hackathons...")
 
-    prompt = _build_prompt(profile, hackathons)
-
     try:
-        matches = PROVIDERS[provider](prompt)
+        matches = PROVIDERS[provider](profile, hackathons)
     except Exception as e:
         print(f"[Matcher] Provider '{provider}' error: {e}")
         return False
