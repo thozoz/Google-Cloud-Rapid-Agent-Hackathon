@@ -52,7 +52,7 @@ Optional:
 Start the API and dashboard with:
 
 ```bash
-uvicorn src.main:app --reload
+.\.venv\Scripts\python -m uvicorn src.main:app --reload
 ```
 
 Then open the app at:
@@ -91,3 +91,6 @@ POST /api/scrape?provider=groq
 - Background scraping runs every 12 hours.
 - Deadline checks run every 24 hours.
 - Do not commit your real `.env` file.
+ 
+Note: Background scraping currently uses Gemini by default (see `src/main.py`).
+If you want the background job to use Groq instead, update `run_background_scrape_and_match()` in `src/main.py` to call `match_hackathons_with_ai(provider="groq")`.
