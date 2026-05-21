@@ -119,7 +119,7 @@ async def list_providers():
             {
                 "id": "groq",
                 "label": "Groq — Llama 70B",
-                "model": "llama3-70b-8192",
+                "model": "llama-3.3-70b-versatile",
                 "configured": bool(os.getenv("GROQ_API_KEY")),
             },
         ]
