@@ -40,6 +40,39 @@ def parse_deadline(date_range_str):
         
     return None
 
+def extract_deadline_from_hackathon(h):
+    """
+    Tries multiple sources to extract deadline from hackathon object.
+    Returns (deadline_dt, deadline_raw_str) tuple.
+    """
+    # Try primary field: submission_period_dates
+    date_range_str = h.get("submission_period_dates")
+    if date_range_str:
+        deadline_dt = parse_deadline(date_range_str)
+        if deadline_dt:
+            return deadline_dt, date_range_str
+    
+    # Fallback: try end_date field
+    end_date = h.get("end_date")
+    if end_date:
+        try:
+            if isinstance(end_date, str):
+                # Try parsing ISO format
+                deadline_dt = datetime.datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                return deadline_dt, end_date
+        except:
+            pass
+    
+    # Fallback: try submission_end_date
+    submission_end = h.get("submission_end_date")
+    if submission_end:
+        deadline_dt = parse_deadline(submission_end)
+        if deadline_dt:
+            return deadline_dt, submission_end
+    
+    # If no deadline found, return None for both
+    return None, date_range_str or "N/A"
+
 def scrape_devpost(max_pages=5):
     """
     Scrapes active/upcoming hackathons from Devpost API.
@@ -89,9 +122,8 @@ def scrape_devpost(max_pages=5):
                 # Clean prize pool
                 prize_pool = clean_prize(h.get("prize_amount"))
                 
-                # Parse deadline
-                date_range_str = h.get("submission_period_dates")
-                deadline_dt = parse_deadline(date_range_str)
+                # Extract deadline (tries multiple sources)
+                deadline_dt, deadline_raw = extract_deadline_from_hackathon(h)
                 
                 # Extract eligibility/location
                 location_info = h.get("displayed_location", {})
@@ -106,7 +138,7 @@ def scrape_devpost(max_pages=5):
                     "url": hackathon_url,
                     "tags": tags,
                     "prize_pool": prize_pool,
-                    "deadline_raw": date_range_str or "N/A",
+                    "deadline_raw": deadline_raw,
                     "deadline": deadline_dt,  # Stores as BSON datetime in MongoDB
                     "eligibility": eligibility,
                     "organization": h.get("organization_name", "Unknown Organizers"),

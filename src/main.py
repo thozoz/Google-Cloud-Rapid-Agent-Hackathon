@@ -122,12 +122,30 @@ async def list_providers():
                 "model": "llama-3.3-70b-versatile",
                 "configured": bool(os.getenv("GROQ_API_KEY")),
             },
+            {
+                "id": "openrouter",
+                "label": "OpenRouter — Qwen3 Next 80B (Free)",
+                "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+                "configured": bool(os.getenv("OPENROUTER_API_KEY")),
+            },
+            {
+                "id": "cerebras",
+                "label": "Cerebras — Qwen 3 235B (Free)",
+                "model": "qwen-3-235b-a22b-instruct-2507",
+                "configured": bool(os.getenv("CEREBRAS_API_KEY")),
+            },
+            {
+                "id": "ollama",
+                "label": "Ollama — Local",
+                "model": os.getenv("OLLAMA_MODEL", "gemma4:e4b"),
+                "configured": True,
+            },
         ]
     }
 
 @app.post("/api/scrape")
 async def trigger_manual_scrape(
-    provider: str = Query(default="gemini", description="AI provider to use: 'gemini' or 'groq'")
+    provider: str = Query(default="gemini", description="AI provider to use: 'gemini', 'groq', 'openrouter', 'cerebras', or 'ollama'")
 ):
     """Manually triggers scraping and AI matching. Use ?provider=groq to switch."""
     print(f"Manual scrape and match requested. Provider: {provider}")

@@ -59,6 +59,10 @@ Required:
 - `MONGODB_URI` — MongoDB connection string (Atlas or local).
 - `GEMINI_API_KEY` — API key for Google Gemini (used when `provider=gemini`).
 - `GROQ_API_KEY` — API key for Groq (used when `provider=groq`).
+- `OPENROUTER_API_KEY` — API key for OpenRouter (used when `provider=openrouter`). Sign up at [openrouter.ai](https://openrouter.ai).
+- `CEREBRAS_API_KEY` — API key for Cerebras (used when `provider=cerebras`). Sign up at [cerebras.ai](https://cerebras.ai).
+- `OLLAMA_ENDPOINT` — Ollama server endpoint (default: `http://localhost:11434/v1`). Change if Ollama runs on a different host or port.
+- `OLLAMA_MODEL` — Model to use with Ollama (default: `gemma4:e4b`). Run `ollama list` to see installed models.
 
 Optional:
 
@@ -82,12 +86,18 @@ The app supports selecting an AI provider for scoring. The default background jo
 
 - Gemini: `gemini-2.0-flash`
 - Groq: `llama-3.3-70b-versatile` (Llama 3.3, 70B)
+- OpenRouter: `qwen/qwen3-next-80b-a3b-instruct:free` (Qwen3 Next 80B, free tier)
+- Cerebras: `qwen-3-235b-a22b-instruct-2507` (Qwen 3 235B, free tier)
+- Ollama: `gemma4:e4b` (configurable via `OLLAMA_MODEL` env variable)
 
 You can trigger a scrape and match via the API and specify the provider:
 
 ```
 POST /api/scrape?provider=gemini
 POST /api/scrape?provider=groq
+POST /api/scrape?provider=openrouter
+POST /api/scrape?provider=cerebras
+POST /api/scrape?provider=ollama
 ```
 
 ## API Endpoints

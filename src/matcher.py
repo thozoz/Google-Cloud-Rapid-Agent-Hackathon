@@ -4,7 +4,7 @@ import re
 import datetime
 import math
 from pydantic import BaseModel, Field
-from typing import List, Literal
+from typing import List
 from dotenv import load_dotenv
 from src.database import get_db, get_profile, get_hackathons
 
@@ -124,45 +124,100 @@ def _match_with_gemini(profile: dict, hackathons: list) -> list:
     return data.get("matches", [])
 
 # ---------------------------------------------------------------------------
-# Provider: Groq — Llama 70B
+# Generic OpenAI-compatible API handler
 # ---------------------------------------------------------------------------
 
-def _match_with_groq(profile: dict, hackathons: list) -> list:
-    from groq import Groq
-
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        raise ValueError("GROQ_API_KEY is not set in your .env file.")
-
-    client = Groq(api_key=api_key)
+def _evaluate_with_openai_compat(
+    profile: dict,
+    hackathons: list,
+    provider_name: str,
+    api_key: str,
+    api_endpoint: str,
+    model: str,
+    extra_headers: dict = None
+) -> list:
+    """Generic evaluator for OpenAI-compatible APIs with retry logic for rate limits."""
+    import httpx
+    import time
+    
     results = []
-
-    print(f"[Groq API] Starting individual evaluation for {len(hackathons)} hackathons...")
-
+    print(f"[{provider_name}] Starting evaluation for {len(hackathons)} hackathons...")
+    
+    # Only add Authorization header if api_key is provided (some providers like Ollama don't need it)
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    if extra_headers:
+        headers.update(extra_headers)
+    
     for h in hackathons:
         try:
             prompt = _build_single_prompt(profile, h)
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.2,
-                max_tokens=1024,
-                response_format={"type": "json_object"}
-            )
-            raw_text = response.choices[0].message.content.strip()
+            
+            # Add delay for local providers (Ollama) to prevent VRAM thrashing
+            if provider_name == "Ollama":
+                time.sleep(0.5)  # 500ms delay between requests
+            
+            # Retry logic for rate limiting (429)
+            max_retries = 3
+            retry_count = 0
+            response = None
+            
+            while retry_count < max_retries:
+                try:
+                    request_body = {
+                        "model": model,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.2,
+                        "max_tokens": 1024,
+                    }
+                    
 
-            # Log raw model output for debugging (helps identify formatting issues)
-            print(f"  [Groq RAW OUTPUT] {h.get('title')}: {raw_text}")
-
-            # Strip markdown code fences if the model wraps in ```json ... ```
+                    response = httpx.post(
+                        f"{api_endpoint}/chat/completions",
+                        headers=headers,
+                        json=request_body,
+                        timeout=60  # Extended timeout for slower local inference
+                    )
+                    
+                    # Handle 429 (Too Many Requests) with exponential backoff
+                    if response.status_code == 429:
+                        wait_time = 2 ** retry_count  # 1s, 2s, 4s
+                        print(f"  [{provider_name}] Rate limited. Waiting {wait_time}s before retry...")
+                        time.sleep(wait_time)
+                        retry_count += 1
+                        continue
+                    
+                    break  # Success or non-429 error
+                except httpx.ReadTimeout:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        wait_time = 2 ** retry_count
+                        print(f"  [{provider_name}] Timeout. Waiting {wait_time}s before retry...")
+                        time.sleep(wait_time)
+                    else:
+                        raise
+            
+            if response is None:
+                print(f"  [{provider_name}] Failed to get response after retries")
+                continue
+            
+            if response.status_code != 200:
+                print(f"  [{provider_name}] Status {response.status_code}")
+                continue
+            
+            data = response.json()
+            raw_text = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+            
+            # Clean JSON response
             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
             raw_text = re.sub(r"\s*```$", "", raw_text)
-
+            
             data = json.loads(raw_text)
             score_raw = data.get("match_score")
             reason = data.get("match_reason")
-
-            # Normalize score using round-half-up to avoid ties-to-even bias
+            
+            # Normalize score
             score = None
             try:
                 if isinstance(score_raw, (int, float)):
@@ -170,38 +225,82 @@ def _match_with_groq(profile: dict, hackathons: list) -> list:
                 elif isinstance(score_raw, str):
                     m = re.search(r"(\d+(?:\.\d+)?)", score_raw)
                     if m:
-                        v = float(m.group(1))
-                        score = int(math.floor(v + 0.5))
+                        score = int(math.floor(float(m.group(1)) + 0.5))
             except Exception as _e:
-                print(f"  [Groq] Warning: failed to parse score '{score_raw}': {_e}")
-
-            # Clamp score to 1-10
+                print(f"  [{provider_name}] Parse error: {_e}")
+            
+            # Clamp & truncate
             if isinstance(score, int):
-                if score < 1:
-                    score = 1
-                if score > 10:
-                    score = 10
-
-            # Only accept valid parsed score and non-empty reason
+                score = max(1, min(10, score))
+            if reason:
+                reason = reason[:150]
+            
             if score is not None and reason:
-                # Trim reason to 150 chars to match downstream expectations
-                reason = reason.strip()
-                if len(reason) > 150:
-                    reason = reason[:147].rstrip() + "..."
-
-                results.append({
-                    "url": h.get("url"),
-                    "match_score": score,
-                    "match_reason": reason
-                })
-                print(f"  [Groq] Evaluated '{h.get('title')}' -> Score: {score}")
-            else:
-                print(f"  [Groq] Warning: Missing score or reason for '{h.get('title')}': {raw_text}")
-
+                results.append({"url": h.get("url"), "match_score": score, "match_reason": reason})
+                print(f"  [{provider_name}] {h.get('title')[:40]} -> {score}")
         except Exception as e:
-            print(f"  [Groq API Error] Failed to evaluate '{h.get('title')}': {e}")
-
+            print(f"  [{provider_name}] Error: {e}")
+    
     return results
+
+# ---------------------------------------------------------------------------
+# Provider: Groq — Llama 3.3 70B
+# ---------------------------------------------------------------------------
+
+def _match_with_groq(profile: dict, hackathons: list) -> list:
+    api_key = os.getenv("GROQ_API_KEY")
+    return _evaluate_with_openai_compat(
+        profile, hackathons,
+        provider_name="Groq",
+        api_key=api_key,
+        api_endpoint="https://api.groq.com/openai/v1",
+        model="llama-3.3-70b-versatile"
+    )
+
+# ---------------------------------------------------------------------------
+# Provider: OpenRouter — Qwen3 Next 80B (Free)
+# ---------------------------------------------------------------------------
+
+def _match_with_openrouter(profile: dict, hackathons: list) -> list:
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    return _evaluate_with_openai_compat(
+        profile, hackathons,
+        provider_name="OpenRouter",
+        api_key=api_key,
+        api_endpoint="https://openrouter.ai/api/v1",
+        model="qwen/qwen3-next-80b-a3b-instruct:free",
+        extra_headers={"HTTP-Referer": "http://localhost:8000", "X-Title": "Hackathon Matcher"}
+    )
+
+# ---------------------------------------------------------------------------
+# Provider: Cerebras — Llama 3.1 8B
+# ---------------------------------------------------------------------------
+
+def _match_with_cerebras(profile: dict, hackathons: list) -> list:
+    api_key = os.getenv("CEREBRAS_API_KEY")
+    return _evaluate_with_openai_compat(
+        profile, hackathons,
+        provider_name="Cerebras",
+        api_key=api_key,
+        api_endpoint="https://api.cerebras.ai/v1",
+        model="qwen-3-235b-a22b-instruct-2507"
+    )
+
+# ---------------------------------------------------------------------------
+# Provider: Ollama — Local (Gemma 4)
+# ---------------------------------------------------------------------------
+
+def _match_with_ollama(profile: dict, hackathons: list) -> list:
+    # Ollama runs locally, no API key needed
+    ollama_endpoint = os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434/v1")
+    ollama_model = os.getenv("OLLAMA_MODEL", "gemma4:e4b")
+    return _evaluate_with_openai_compat(
+        profile, hackathons,
+        provider_name="Ollama",
+        api_key=None,
+        api_endpoint=ollama_endpoint,
+        model=ollama_model
+    )
 
 # ---------------------------------------------------------------------------
 # Dispatcher — call this from main.py
@@ -209,13 +308,16 @@ def _match_with_groq(profile: dict, hackathons: list) -> list:
 
 PROVIDERS = {
     "gemini": _match_with_gemini,
-    "groq":   _match_with_groq,
+    "groq": _match_with_groq,
+    "openrouter": _match_with_openrouter,
+    "cerebras": _match_with_cerebras,
+    "ollama": _match_with_ollama,
 }
 
 def match_hackathons_with_ai(provider: str = "gemini") -> bool:
     """
     Evaluates all hackathons in the DB against the user profile.
-    provider: 'gemini' (default) | 'groq'
+    provider: 'gemini' (default) | 'groq' | 'openrouter' | 'cerebras' | 'ollama'
     Saves match_score, match_reason, and ai_provider back to MongoDB.
     """
     provider = provider.lower()

@@ -356,7 +356,7 @@ function renderRecommendations() {
         }
         
         // Calculate dynamic deadline text & styles
-        let deadlineLabel = h.deadline_raw;
+        let deadlineLabel = h.deadline_raw || "TBD";
         let isDeadlineUrgent = false;
         let isDeadlineImminent = false;
         let _daysLeft = null;
@@ -369,6 +369,26 @@ function renderRecommendations() {
                 if (_daysLeft <= 3) isDeadlineImminent = true; // red for <=3d
             } else {
                 deadlineLabel = `EXPIRED [${h.deadline_raw}]`;
+            }
+        } else if (h.deadline_raw && h.deadline_raw !== "N/A") {
+            // Fallback: try to parse deadline_raw if deadline field is missing
+            try {
+                // Try parsing common date formats from Devpost (e.g., "May 11 - 28, 2026")
+                const rawParts = h.deadline_raw.split(/[-–—]/);
+                const endDateStr = rawParts[rawParts.length - 1].trim();
+                const parsedDate = new Date(endDateStr);
+                if (!isNaN(parsedDate)) {
+                    _daysLeft = Math.ceil((parsedDate - new Date()) / (1000 * 60 * 60 * 24));
+                    if (_daysLeft >= 0) {
+                        deadlineLabel = `${_daysLeft}d [${h.deadline_raw}]`;
+                        if (_daysLeft <= 7) isDeadlineUrgent = true;
+                        if (_daysLeft <= 3) isDeadlineImminent = true;
+                    } else {
+                        deadlineLabel = `EXPIRED [${h.deadline_raw}]`;
+                    }
+                }
+            } catch (e) {
+                // If parsing fails, just use the raw deadline string
             }
         }
         
