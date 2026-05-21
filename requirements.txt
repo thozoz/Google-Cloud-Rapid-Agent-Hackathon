@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymongo
+dnspython
+google-genai
+beautifulsoup4
+httpx
+python-dotenv
+apscheduler
