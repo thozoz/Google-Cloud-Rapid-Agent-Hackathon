@@ -85,10 +85,19 @@
             <header class="dashboard-header glass-panel">
                 <div class="header-intro">
                     <h2>Welcome to Hackathon Command Center</h2>
-                    <p>Scrape hackathons, match them with Gemini 2.0 Flash, and track deadlines autonomously.</p>
+                    <p>Scrape hackathons, match them with Gemini or Groq, and track deadlines autonomously.</p>
                 </div>
                 
                 <div class="header-actions">
+                    <div class="provider-select-wrap">
+                        <label for="ai-provider">AI Provider</label>
+                        <div class="select-wrapper">
+                            <select id="ai-provider" disabled>
+                                <option value="gemini">Loading providers...</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <button class="btn btn-secondary" id="btn-trigger-scrape" disabled>
                         <i class="fa-solid fa-circle-notch fa-spin btn-loader" id="scrape-loader" style="display:none;"></i>
                         <i class="fa-solid fa-sync" id="scrape-icon"></i> Scrape & Match
@@ -141,7 +150,7 @@
                     <div class="content-header">
                         <div>
                             <h3>Recommended for You</h3>
-                            <p>Scored out of 10 by Gemini based on stack match, domains, and timeline compatibility.</p>
+                            <p>Scored out of 10 by your selected AI based on stack match, domains, and timeline compatibility.</p>
                         </div>
                     </div>
                     

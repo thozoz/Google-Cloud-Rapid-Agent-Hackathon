@@ -380,6 +380,23 @@ body {
     gap: 12px;
 }
 
+.provider-select-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 180px;
+}
+
+.provider-select-wrap label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.provider-select-wrap .select-wrapper select {
+    min-width: 180px;
+}
+
 .btn-loader {
     margin-right: 4px;
 }

@@ -3,6 +3,7 @@ uvicorn
 pymongo
 dnspython
 google-genai
+groq
 beautifulsoup4
 httpx
 python-dotenv

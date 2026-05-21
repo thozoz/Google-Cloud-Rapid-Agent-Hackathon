@@ -1,6 +1,6 @@
 import os
 import contextlib
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -9,15 +9,15 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import uvicorn
 from src.database import init_db, save_profile, get_profile, get_hackathons, track_hackathon, get_tracked_hackathons
 from src.scraper import scrape_devpost
-from src.matcher import match_hackathons_with_gemini
+from src.matcher import match_hackathons_with_ai, match_hackathons_with_gemini
 from src.reminder import check_deadlines_and_notify
 
 # Scheduler initialization
 scheduler = AsyncIOScheduler()
 
 def run_background_scrape_and_match():
-    """Background task to run Devpost scraper and score them using Gemini."""
-    print("[Background Job] Starting automatic scraping and Gemini matching...")
+    """Background task to run Devpost scraper and score them using the default provider."""
+    print("[Background Job] Starting automatic scraping and matching...")
     try:
         scraped = scrape_devpost(max_pages=3)
         if scraped:
@@ -104,27 +104,51 @@ async def retrieve_user_profile():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+@app.get("/api/providers")
+async def list_providers():
+    """Returns available AI providers and which keys are configured."""
+    import os
+    return {
+        "providers": [
+            {
+                "id": "gemini",
+                "label": "Gemini 2.0 Flash",
+                "model": "gemini-2.0-flash",
+                "configured": bool(os.getenv("GEMINI_API_KEY")),
+            },
+            {
+                "id": "groq",
+                "label": "Groq — Llama 70B",
+                "model": "llama3-70b-8192",
+                "configured": bool(os.getenv("GROQ_API_KEY")),
+            },
+        ]
+    }
+
 @app.post("/api/scrape")
-async def trigger_manual_scrape():
-    """Manually triggers scraping and Gemini matching immediately."""
-    print("Manual scrape and match requested.")
+async def trigger_manual_scrape(
+    provider: str = Query(default="gemini", description="AI provider to use: 'gemini' or 'groq'")
+):
+    """Manually triggers scraping and AI matching. Use ?provider=groq to switch."""
+    print(f"Manual scrape and match requested. Provider: {provider}")
     try:
         scraped = scrape_devpost(max_pages=3)
         if not scraped:
-            return {"status": "success", "message": "Scrape completed. No new hackathons found."}
-            
-        matched_success = match_hackathons_with_gemini()
+            return {"status": "success", "message": "Scrape completed. No new hackathons found.", "provider": provider}
+
+        matched_success = match_hackathons_with_ai(provider=provider)
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Successfully scraped {len(scraped)} hackathons.",
-            "gemini_evaluated": matched_success
+            "provider": provider,
+            "ai_evaluated": matched_success,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scraper error: {str(e)}")
 
 @app.get("/api/hackathons")
 async def list_hackathons():
-    """Lists all hackathons from MongoDB, sorted by their Gemini match score."""
+    """Lists all hackathons from MongoDB, sorted by their match score."""
     try:
         hackathons = get_hackathons(sort_by_score=True)
         return {"status": "success", "count": len(hackathons), "hackathons": hackathons}

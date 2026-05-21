@@ -10,6 +10,7 @@ const experienceSelect = document.getElementById("experience-level");
 const availabilitySelect = document.getElementById("weekly-availability");
 const profileStatus = document.getElementById("profile-status");
 const btnSaveProfile = document.getElementById("btn-save-profile");
+const aiProviderSelect = document.getElementById("ai-provider");
 
 const btnTriggerScrape = document.getElementById("btn-trigger-scrape");
 const scrapeLoader = document.getElementById("scrape-loader");
@@ -30,6 +31,7 @@ const trackedGrid = document.getElementById("tracked-grid");
 let userProfile = null;
 let hackathonsList = [];
 let trackedList = [];
+let availableProviders = [];
 
 // Initialize Dashboard
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initApp() {
     setupTabNavigation();
     setupEventListeners();
+    await loadProviders();
     await loadProfile();
     if (userProfile) {
         await loadDashboardData();
@@ -76,6 +79,46 @@ function setupEventListeners() {
     
     // Manual deadline check trigger
     btnTriggerReminders.addEventListener("click", triggerDeadlineCheck);
+}
+
+function refreshScrapeButtonState() {
+    const hasConfiguredProvider = availableProviders.some(provider => provider.configured);
+    btnTriggerScrape.disabled = !(userProfile && hasConfiguredProvider);
+}
+
+async function loadProviders() {
+    try {
+        const response = await fetch(`${API_BASE}/providers`);
+        const data = await response.json();
+        availableProviders = data.providers || [];
+
+        aiProviderSelect.innerHTML = "";
+
+        if (availableProviders.length === 0) {
+            aiProviderSelect.innerHTML = '<option value="gemini">No providers found</option>';
+            aiProviderSelect.disabled = true;
+            refreshScrapeButtonState();
+            return;
+        }
+
+        availableProviders.forEach(provider => {
+            const option = document.createElement("option");
+            option.value = provider.id;
+            option.textContent = `${provider.label}${provider.configured ? "" : " (API key missing)"}`;
+            option.disabled = !provider.configured;
+            aiProviderSelect.appendChild(option);
+        });
+
+        const firstReadyProvider = availableProviders.find(provider => provider.configured);
+        aiProviderSelect.value = firstReadyProvider ? firstReadyProvider.id : availableProviders[0].id;
+        aiProviderSelect.disabled = !firstReadyProvider;
+        refreshScrapeButtonState();
+    } catch (err) {
+        console.error("Error loading providers:", err);
+        aiProviderSelect.innerHTML = '<option value="gemini">Gemini</option><option value="groq">Groq</option>';
+        aiProviderSelect.disabled = false;
+        refreshScrapeButtonState();
+    }
 }
 
 // Toast Notification Engine
@@ -125,14 +168,15 @@ async function loadProfile() {
                 <span>Profile connected to MongoDB Atlas.</span>
             `;
             
-            // Enable Scraping
-            btnTriggerScrape.disabled = false;
+            // Enable Scraping when a provider is available
+            refreshScrapeButtonState();
         } else {
-            btnTriggerScrape.disabled = true;
+            refreshScrapeButtonState();
         }
     } catch (err) {
         console.error("Error loading profile:", err);
         showToast("Failed to connect with database backend.", "error");
+        refreshScrapeButtonState();
     }
 }
 
@@ -171,8 +215,8 @@ async function handleProfileSubmit(e) {
                 <span>Profile connected to MongoDB Atlas.</span>
             `;
             
-            // Enable scrape button
-            btnTriggerScrape.disabled = false;
+            // Enable scrape button when a provider is available
+            refreshScrapeButtonState();
             
             // Load dashboard data
             await loadDashboardData();
@@ -183,6 +227,7 @@ async function handleProfileSubmit(e) {
         console.error("Error saving profile:", err);
         showToast("Backend connection error.", "error");
     } finally {
+        refreshScrapeButtonState();
         btnSaveProfile.disabled = false;
     }
 }
@@ -192,17 +237,19 @@ async function triggerScrapeAndMatch() {
     btnTriggerScrape.disabled = true;
     scrapeLoader.style.display = "inline-block";
     scrapeIcon.style.display = "none";
+    const provider = aiProviderSelect.value || "gemini";
     
-    showToast("Launching Devpost Scraper & Gemini 2.0 Flash Matcher in background...", "info");
+    const providerLabel = availableProviders.find(item => item.id === provider)?.label || provider;
+    showToast(`Launching Devpost Scraper & ${providerLabel} Matcher in background...`, "info");
     
     try {
-        const response = await fetch(`${API_BASE}/scrape`, { method: "POST" });
+        const response = await fetch(`${API_BASE}/scrape?provider=${encodeURIComponent(provider)}`, { method: "POST" });
         const data = await response.json();
         
         if (data.status === "success") {
             showToast(data.message, "success");
-            if (data.gemini_evaluated) {
-                showToast("Gemini 2.0 Flash completed scoring matches!", "success");
+            if (data.ai_evaluated) {
+                showToast(`${providerLabel} completed scoring matches!`, "success");
             }
             await loadDashboardData();
         } else {
@@ -289,7 +336,7 @@ function renderRecommendations() {
             <div class="empty-state">
                 <i class="fa-solid fa-cloud-arrow-down"></i>
                 <h4>No hackathons found in database</h4>
-                <p>Click the "Scrape & Match" button in the top right to crawl Devpost and match them using Gemini 2.0 Flash.</p>
+                <p>Click the "Scrape & Match" button in the top right to crawl Devpost and match them using the selected AI provider.</p>
             </div>
         `;
         return;

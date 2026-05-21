@@ -1,0 +1,11 @@
+# Local environment files
+.env
+
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# VS Code
+.vscode/
