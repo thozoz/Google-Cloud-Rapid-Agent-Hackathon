@@ -411,14 +411,14 @@ function renderRecommendations() {
                 ${(h.tags || []).slice(0, 3).map(tag => `<span class="px-2 py-0.5 font-mono text-[10px] bg-transparent border border-[#444] text-[#999] rounded-sm">${escapeHTML(tag)}</span>`).join("")}
             </div>
             
-            <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px]">
+            <div class="grid grid-cols-2 gap-4 pt-3 font-mono">
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#999] uppercase tracking-tighter">PRIZE_POOL</span>
-                    <span class="text-[#fbbf24]">${escapeHTML(h.prize_pool)}</span>
+                    <span class="text-[#888] uppercase tracking-tighter text-[10px]">PRIZE_POOL</span>
+                    <span class="text-[#a78bfa] text-xs font-semibold">${escapeHTML(h.prize_pool)}</span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#999] uppercase tracking-tighter">DEADLINE</span>
-                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')}">${escapeHTML(deadlineLabel)}</span>
+                    <span class="text-[#888] uppercase tracking-tighter text-[10px]">DEADLINE</span>
+                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')} text-xs font-semibold">${escapeHTML(deadlineLabel)}</span>
                 </div>
             </div>
             
@@ -492,14 +492,14 @@ function renderTracked() {
                 <div class="font-mono text-lg font-bold text-[#00ff87]">${score}</div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px]">
+            <div class="grid grid-cols-2 gap-4 pt-3 font-mono">
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#999] uppercase tracking-tighter">PRIZE_POOL</span>
-                    <span class="text-[#fbbf24]">${escapeHTML(h.prize_pool)}</span>
+                    <span class="text-[#888] uppercase tracking-tighter text-[10px]">PRIZE_POOL</span>
+                    <span class="text-[#a78bfa] text-xs font-semibold">${escapeHTML(h.prize_pool)}</span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#999] uppercase tracking-tighter">DEADLINE</span>
-                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')}">${escapeHTML(deadlineLabel)}</span>
+                    <span class="text-[#888] uppercase tracking-tighter text-[10px]">DEADLINE</span>
+                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')} text-xs font-semibold">${escapeHTML(deadlineLabel)}</span>
                 </div>
             </div>
             

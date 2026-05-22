@@ -1,20 +1,20 @@
 # Hackathon Discovery & Matching Agent
 
-A small FastAPI application that scrapes hackathons from Devpost, scores them against a saved developer profile using an LLM, and provides a browser dashboard to review and track opportunities. The app supports multiple AI providers (Gemini and Groq) and can send deadline reminders via Discord webhooks.
+A small FastAPI application that scrapes hackathons from Devpost, scores them against a saved developer profile using an LLM, and provides a browser dashboard to review and track opportunities. Supports multiple AI providers (Gemini, Groq, OpenRouter, Cerebras, Ollama) and can send deadline reminders via Discord webhooks.
 
 ## Why This Exists
 
 Finding suitable hackathons is time-consuming and fragmented. This agent automates the end-to-end workflow—scrape, score, track, and remind—so developers can focus on building instead of searching.
 
-Created for the Google Cloud Agent Builder Hackathon. The app uses MongoDB MCP for persistence and supports Groq and Gemini for profile-driven matching.
+Created for the Google Cloud Agent Builder Hackathon. Uses MongoDB for persistence and supports multiple AI providers for profile-driven matching.
 
 ## Key Features
 
-- Scrape active hackathons from Devpost.
-- Score hackathons against a developer profile using an AI provider (Gemini or Groq).
-- Persist a single developer profile and scored hackathons in MongoDB.
+- Scrape active and upcoming hackathons from Devpost.
+- Score hackathons against your profile using your choice of AI provider.
+- Persist a developer profile and scored hackathons in MongoDB.
 - Track/untrack hackathons and receive optional deadline reminders via Discord.
-- Serve a lightweight static dashboard from the same FastAPI server.
+- Lightweight dashboard with minimalist dark theme and profile-based recommendations.
 
 ## Project Layout
 
@@ -82,15 +82,15 @@ http://127.0.0.1:8000
 
 ## AI Providers
 
-The app supports selecting an AI provider for scoring. The default background job uses the configured provider in `src/main.py` (Gemini is the default in the current code).
+The app supports selecting which AI provider to use for scoring. Trigger via `?provider=<name>`:
 
-- Gemini: `gemini-2.0-flash`
-- Groq: `llama-3.3-70b-versatile` (Llama 3.3, 70B)
-- OpenRouter: `qwen/qwen3-next-80b-a3b-instruct:free` (Qwen3 Next 80B, free tier)
-- Cerebras: `qwen-3-235b-a22b-instruct-2507` (Qwen 3 235B, free tier)
-- Ollama: `gemma4:e4b` (configurable via `OLLAMA_MODEL` env variable)
+- **Gemini**: `gemini-2.0-flash`
+- **Groq**: `llama-3.3-70b-versatile` (Llama 3.3, 70B)
+- **OpenRouter**: `qwen/qwen3-next-80b-a3b-instruct:free` (free tier)
+- **Cerebras**: `qwen-3-235b-a22b-instruct-2507` (free tier)
+- **Ollama**: `gemma4:e4b` (local, configurable via `OLLAMA_MODEL`)
 
-You can trigger a scrape and match via the API and specify the provider:
+Trigger scraping with a specific provider:
 
 ```
 POST /api/scrape?provider=gemini
@@ -100,30 +100,26 @@ POST /api/scrape?provider=cerebras
 POST /api/scrape?provider=ollama
 ```
 
-## API Endpoints
+Other endpoints:
 
-- `GET /api/providers` — List available providers and whether API keys are set.
-- `POST /api/profile` — Save or update the developer profile used for matching.
-- `GET /api/profile` — Retrieve the saved developer profile.
-- `POST /api/scrape` — Scrape Devpost and score hackathons (accepts `provider` query parameter).
-- `GET /api/hackathons` — Return the latest scored hackathons.
-- `POST /api/track` — Track or untrack a hackathon by ID.
-- `GET /api/tracked` — List tracked hackathons.
-- `POST /api/remind` — Trigger deadline checks and send reminders if needed.
+```
+GET /api/providers           # List available providers
+GET /api/profile             # Get saved profile
+POST /api/profile            # Save profile
+GET /api/hackathons          # List scored hackathons
+POST /api/track              # Track/untrack a hackathon
+GET /api/tracked             # List tracked projects
+POST /api/remind             # Trigger deadline reminders
+```
 
-## Behavior Notes
+## Background Jobs
 
-- Background scraping is scheduled (current code uses a 12-hour interval).
-- Deadline checks run on a separate schedule (current code uses a 24-hour interval).
-- The matcher enforces short, UI-friendly analysis strings (approximately 150 characters) and normalizes scores with a round-half-up strategy to avoid even-number bias.
-
-## Customization
-
-To change which provider the background job uses, edit `run_background_scrape_and_match()` in `src/main.py` and call `match_hackathons_with_ai(provider="groq")` or `provider="gemini"` as desired.
+- **Scraping**: Runs every 12 hours automatically.
+- **Deadline Reminders**: Runs every 24 hours automatically.
+- **Analysis**: Scores capped 1-10, reasons truncated to ~150 characters for readability.
 
 ## Troubleshooting
 
-- If the dashboard fails to load, confirm your `.env` variables and that MongoDB is reachable via `MONGODB_URI`.
-- Check the application logs printed by Uvicorn for stack traces and errors.
-
-If you'd like, I can also run the server locally in this workspace to verify the README changes and confirm the app starts successfully.
+- **Dashboard won't load**: Verify `.env` variables and that MongoDB is reachable.
+- **Scraping fails**: Check API key configuration and network connectivity.
+- **No matches returned**: Verify that Devpost has active/upcoming hackathons available.
