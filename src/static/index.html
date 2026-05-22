@@ -88,11 +88,11 @@
             }
         }
     </script>
-<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: transparent; border: 1px solid #1f1f1f; border-radius: 4px; color: #e5e2e1; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; }</style>
-<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: transparent; border: 1px solid #1f1f1f; border-radius: 4px; color: #e5e2e1; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; }</style></head>
+<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: #0a0a0a !important; border: 1px solid #2a2a2a !important; border-radius: 4px; color: #e8e8e8 !important; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8 !important; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; }</style>
+<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: #0a0a0a !important; border: 1px solid #2a2a2a !important; border-radius: 4px; color: #e8e8e8 !important; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8 !important; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; } #toast-container .toast { background: rgba(0, 0, 0, 0.8) !important; color: #e8e8e8 !important; padding: 18px 26px !important; }</style></head>
 <body class="min-h-screen flex text-body-md antialiased selection:bg-primary selection:text-background">
 <!-- Sidebar - Config Panel -->
-<aside class="w-80 border-l-4 bg-[#131313] border-r border-[#1f1f1f] flex flex-col p-6 overflow-y-auto" style="border-left: 4px solid #2a2a2a;">
+<aside class="w-80 bg-[#131313] border-r border-[#1f1f1f] flex flex-col p-6 overflow-y-auto">
 <div class="mb-10">
 <div class="flex items-center gap-3 mb-2" style="color: #e8e8e8;">
 <span class="material-symbols-outlined text-2xl">terminal</span>
@@ -140,7 +140,7 @@
 </div>
 </aside>
 <!-- Main Dashboard View -->
-<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<main class="flex-1 flex flex-col h-screen overflow-hidden bg-background" style="background-color: #0a0a0a;">
 <!-- Header -->
 <header class="px-8 py-6 border-b border-border-subtle flex items-center justify-between bg-background">
 <div class="flex items-center gap-6">
@@ -179,7 +179,7 @@
 </div>
 </header>
 <!-- Main Content Area -->
-<div class="flex-1 overflow-y-auto p-8">
+<div class="flex-1 overflow-y-auto p-8 bg-background">
 <!-- Tab Navigation -->
 <div class="border-b border-border-subtle mb-6 flex gap-6 font-label-mono">
 <button class="tab-btn pb-3 px-1 text-on-surface hover:text-primary transition-colors flex items-center gap-2 active border-b-2 border-[#e8e8e8] text-[#e8e8e8]" data-tab="tab-recommendations">

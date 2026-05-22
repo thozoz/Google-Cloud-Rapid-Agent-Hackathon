@@ -393,46 +393,46 @@ function renderRecommendations() {
         }
         
         const card = document.createElement("div");
-        card.className = "flex flex-col gap-4 p-5 bg-[#1c1b1b] border border-[#1f1f1f] rounded-sm hover:border-[#333] transition-colors group";
+        card.className = "flex flex-col gap-4 p-5 bg-[#0a0a0a] border border-white rounded-sm hover:border-white transition-colors group";
         
         card.innerHTML = `
             <div class="flex justify-between items-start">
                 <div class="flex flex-col gap-1">
-                    <span class="font-mono text-[10px] uppercase tracking-wider text-[#666]">${escapeHTML(h.organization)}</span>
-                    <h4 class="font-bold text-[#e8e8e8] text-sm leading-tight">${escapeHTML(h.title)}</h4>
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-white">${escapeHTML(h.organization)}</span>
+                    <h4 class="font-bold text-white text-sm leading-tight">${escapeHTML(h.title)}</h4>
                 </div>
                 <div class="flex flex-col items-end font-mono">
-                    <span class="text-lg font-bold ${badgeClass}">${score}</span>
-                    <span class="text-[8px] text-[#666] uppercase tracking-tighter mt-[-4px]">MATCH_SCORE</span>
+                    <span class="text-lg font-bold text-[#00ff87]">${score}</span>
+                    <span class="text-[8px] text-white uppercase tracking-tighter mt-[-4px]">MATCH_SCORE</span>
                 </div>
             </div>
             
             <div class="flex flex-wrap gap-2">
-                ${(h.tags || []).slice(0, 3).map(tag => `<span class="px-2 py-0.5 font-mono text-[10px] bg-[#111] border border-[#222] text-[#888] rounded-sm">${escapeHTML(tag)}</span>`).join("")}
+                ${(h.tags || []).slice(0, 3).map(tag => `<span class="px-2 py-0.5 font-mono text-[10px] bg-transparent border border-white text-white rounded-sm">${escapeHTML(tag)}</span>`).join("")}
             </div>
             
             <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px]">
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#666] uppercase tracking-tighter">PRIZE_POOL</span>
-                    <span class="text-[#00ff87]">${escapeHTML(h.prize_pool)}</span>
+                    <span class="text-white uppercase tracking-tighter">PRIZE_POOL</span>
+                    <span class="text-[#fbbf24]">${escapeHTML(h.prize_pool)}</span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#666] uppercase tracking-tighter">DEADLINE</span>
-                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')}">${escapeHTML(deadlineLabel)}</span>
+                    <span class="text-white uppercase tracking-tighter">DEADLINE</span>
+                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-white')}">${escapeHTML(deadlineLabel)}</span>
                 </div>
             </div>
             
             ${h.match_reason ? `
-            <div class="mt-2 p-3 bg-[#111] border-l border-[#222] font-mono text-[11px] text-[#888] leading-relaxed italic">
-                <span class="text-[#444] mr-1">ANALYSIS:</span> ${escapeHTML(h.match_reason)}
+            <div class="mt-2 p-3 bg-transparent border-l border-white font-mono text-[11px] text-white leading-relaxed italic">
+                <span class="text-white opacity-70 mr-1">ANALYSIS:</span> ${escapeHTML(h.match_reason)}
             </div>
             ` : ""}
             
-            <div class="flex items-center justify-between mt-auto pt-4 border-t border-[#1f1f1f]">
-                <a href="${h.url}" target="_blank" class="font-mono text-[11px] text-[#666] hover:text-[#e8e8e8] flex items-center gap-2 transition-colors">
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-white">
+                <a href="${h.url}" target="_blank" class="font-mono text-[11px] text-white hover:text-[#fbbf24] flex items-center gap-2 transition-colors">
                     LINK <i class="fa-solid fa-arrow-right text-[8px]"></i>
                 </a>
-                <button class="btn-track font-mono text-[10px] px-3 py-1 border transition-all ${isTracked ? 'bg-[#ff4757] border-[#ff4757] text-white' : 'bg-transparent border-[#2a2a2a] text-[#666] hover:border-[#e8e8e8] hover:text-[#e8e8e8]'}" data-url="${h.url}">
+                <button class="btn-track font-mono text-[10px] px-3 py-1 border transition-all ${isTracked ? 'bg-[#ff4757] border-[#ff4757] text-white' : 'bg-transparent border-white text-white hover:bg-white hover:text-[#0a0a0a]'}" data-url="${h.url}">
                     ${isTracked ? 'UNTRACK' : 'TRACK_PROJECT'}
                 </button>
             </div>
@@ -481,30 +481,30 @@ function renderTracked() {
         }
         
         const card = document.createElement("div");
-        card.className = "flex flex-col gap-4 p-5 bg-[#1c1b1b] border border-[#1f1f1f] rounded-sm hover:border-[#333] transition-colors group";
+        card.className = "flex flex-col gap-4 p-5 bg-[#0a0a0a] border border-white rounded-sm hover:border-white transition-colors group";
         
         card.innerHTML = `
             <div class="flex justify-between items-start">
                 <div class="flex flex-col gap-1">
-                    <span class="font-mono text-[10px] uppercase tracking-wider text-[#666]">${escapeHTML(h.organization)}</span>
-                    <h4 class="font-bold text-[#e8e8e8] text-sm leading-tight">${escapeHTML(h.title)}</h4>
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-white">${escapeHTML(h.organization)}</span>
+                    <h4 class="font-bold text-white text-sm leading-tight">${escapeHTML(h.title)}</h4>
                 </div>
-                <div class="font-mono text-lg font-bold ${badgeClass}">${score}</div>
+                <div class="font-mono text-lg font-bold text-[#00ff87]">${score}</div>
             </div>
             
             <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px]">
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#666] uppercase tracking-tighter">PRIZE_POOL</span>
-                    <span class="text-[#00ff87]">${escapeHTML(h.prize_pool)}</span>
+                    <span class="text-white uppercase tracking-tighter">PRIZE_POOL</span>
+                    <span class="text-[#fbbf24]">${escapeHTML(h.prize_pool)}</span>
                 </div>
                 <div class="flex flex-col gap-1">
-                    <span class="text-[#666] uppercase tracking-tighter">DEADLINE</span>
-                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-[#e8e8e8]')}">${escapeHTML(deadlineLabel)}</span>
+                    <span class="text-white uppercase tracking-tighter">DEADLINE</span>
+                    <span class="${isDeadlineImminent ? 'text-[#ff4757]' : (isDeadlineUrgent ? 'text-[#fbbf24]' : 'text-white')}">${escapeHTML(deadlineLabel)}</span>
                 </div>
             </div>
             
-            <div class="flex items-center justify-between mt-auto pt-4 border-t border-[#1f1f1f]">
-                <a href="${h.url}" target="_blank" class="font-mono text-[11px] text-[#666] hover:text-[#e8e8e8] flex items-center gap-2 transition-colors">
+            <div class="flex items-center justify-between mt-auto pt-4 border-t border-white">
+                <a href="${h.url}" target="_blank" class="font-mono text-[11px] text-white hover:text-[#fbbf24] flex items-center gap-2 transition-colors">
                     GUIDELINES <i class="fa-solid fa-arrow-right text-[8px]"></i>
                 </a>
                 <button class="btn-track font-mono text-[10px] px-3 py-1 border bg-[#ff4757] border-[#ff4757] text-white rounded-sm hover:opacity-80 transition-opacity" data-url="${h.url}">
