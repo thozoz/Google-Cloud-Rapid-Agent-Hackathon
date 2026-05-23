@@ -11,6 +11,7 @@ from src.database import init_db, save_profile, get_profile, get_hackathons, tra
 from src.scraper import scrape_devpost
 from src.matcher import match_hackathons_with_ai, match_hackathons_with_gemini
 from src.reminder import check_deadlines_and_notify
+from src.agent import HackathonAgent, close_agent
 
 # Scheduler initialization
 scheduler = AsyncIOScheduler()
@@ -53,6 +54,7 @@ async def lifespan(app: FastAPI):
     # Shutdown Events
     print("Shutting down background scheduler...")
     scheduler.shutdown()
+    await close_agent()
 
 # Initialize FastAPI App
 app = FastAPI(
@@ -82,6 +84,9 @@ class TrackRequest(BaseModel):
     url: str
     track: bool
 
+class ChatRequest(BaseModel):
+    message: str
+
 # API Routes
 
 @app.post("/api/profile")
@@ -107,47 +112,22 @@ async def retrieve_user_profile():
 @app.get("/api/providers")
 async def list_providers():
     """Returns available AI providers and which keys are configured."""
-    import os
     return {
         "providers": [
             {
                 "id": "gemini",
-                "label": "Gemini 2.0 Flash",
-                "model": "gemini-2.0-flash",
-                "configured": bool(os.getenv("GEMINI_API_KEY")),
-            },
-            {
-                "id": "groq",
-                "label": "Groq — Llama 70B",
-                "model": "llama-3.3-70b-versatile",
-                "configured": bool(os.getenv("GROQ_API_KEY")),
-            },
-            {
-                "id": "openrouter",
-                "label": "OpenRouter — Qwen3 Next 80B (Free)",
-                "model": "qwen/qwen3-next-80b-a3b-instruct:free",
-                "configured": bool(os.getenv("OPENROUTER_API_KEY")),
-            },
-            {
-                "id": "cerebras",
-                "label": "Cerebras — Qwen 3 235B (Free)",
-                "model": "qwen-3-235b-a22b-instruct-2507",
-                "configured": bool(os.getenv("CEREBRAS_API_KEY")),
-            },
-            {
-                "id": "ollama",
-                "label": "Ollama — Local",
-                "model": os.getenv("OLLAMA_MODEL", "gemma4:e4b"),
+                "label": "Google Cloud Agent Builder (Vertex AI)",
+                "model": "gemini-2.5-flash",
                 "configured": True,
-            },
+            }
         ]
     }
 
 @app.post("/api/scrape")
 async def trigger_manual_scrape(
-    provider: str = Query(default="gemini", description="AI provider to use: 'gemini', 'groq', 'openrouter', 'cerebras', or 'ollama'")
+    provider: str = Query(default="gemini", description="AI provider to use: 'gemini'")
 ):
-    """Manually triggers scraping and AI matching. Use ?provider=groq to switch."""
+    """Manually triggers scraping and AI matching."""
     print(f"Manual scrape and match requested. Provider: {provider}")
     try:
         scraped = scrape_devpost(max_pages=3)
@@ -207,6 +187,16 @@ async def trigger_manual_reminders():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Reminder error: {str(e)}")
+
+@app.post("/api/chat")
+async def chat_with_agent(req: ChatRequest):
+    """Sends a message to the Hackathon Agent and returns the response."""
+    try:
+        agent = await HackathonAgent.get_instance()
+        response_text = await agent.send_message(req.message)
+        return {"status": "success", "response": response_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
 # Mount static files UI at root
 static_dir = os.path.join(os.path.dirname(__file__), "static")

@@ -79,6 +79,73 @@ function setupEventListeners() {
     
     // Manual deadline check trigger
     btnTriggerReminders.addEventListener("click", triggerDeadlineCheck);
+
+    // Chat functionality
+    const chatForm = document.getElementById("chat-form");
+    if (chatForm) {
+        chatForm.addEventListener("submit", handleChatSubmit);
+    }
+}
+
+async function handleChatSubmit(e) {
+    e.preventDefault();
+    const chatInput = document.getElementById("chat-input");
+    const chatSubmit = document.getElementById("chat-submit");
+    const chatHistory = document.getElementById("chat-history");
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Append user message
+    const userMsgDiv = document.createElement("div");
+    userMsgDiv.className = "mb-4 text-right";
+    userMsgDiv.innerHTML = `<span class="inline-block bg-[#333] px-3 py-2 rounded text-[#e8e8e8]">${escapeHTML(message)}</span>`;
+    chatHistory.appendChild(userMsgDiv);
+    
+    chatInput.value = "";
+    chatSubmit.disabled = true;
+    chatInput.disabled = true;
+
+    // Add loading state
+    const loadingDiv = document.createElement("div");
+    loadingDiv.className = "mb-4";
+    loadingDiv.id = "chat-loading";
+    loadingDiv.innerHTML = `<span class="font-bold text-primary">Agent:</span> <span class="text-[#888] italic">Thinking (querying MongoDB MCP)...</span>`;
+    chatHistory.appendChild(loadingDiv);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+    try {
+        const response = await fetch(`${API_BASE}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: message })
+        });
+        const data = await response.json();
+        
+        loadingDiv.remove();
+
+        const agentMsgDiv = document.createElement("div");
+        agentMsgDiv.className = "mb-4";
+        if (data.status === "success") {
+            agentMsgDiv.innerHTML = `<span class="font-bold text-primary">Agent:</span> <span class="text-[#e8e8e8]">${escapeHTML(data.response).replace(/\\n/g, '<br>')}</span>`;
+        } else {
+            agentMsgDiv.innerHTML = `<span class="font-bold text-error">Agent Error:</span> <span class="text-error">${escapeHTML(data.message || "Unknown error")}</span>`;
+        }
+        chatHistory.appendChild(agentMsgDiv);
+    } catch (err) {
+        loadingDiv.remove();
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "mb-4";
+        errorDiv.innerHTML = `<span class="font-bold text-error">Agent Error:</span> <span class="text-error">Network or server error</span>`;
+        chatHistory.appendChild(errorDiv);
+    } finally {
+        chatSubmit.disabled = false;
+        chatInput.disabled = false;
+        chatInput.focus();
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        
+        // Refresh dashboard data just in case the agent tracked something
+        await loadDashboardData();
+    }
 }
 
 function refreshScrapeButtonState() {
@@ -115,7 +182,7 @@ async function loadProviders() {
         refreshScrapeButtonState();
     } catch (err) {
         console.error("Error loading providers:", err);
-        aiProviderSelect.innerHTML = '<option value="gemini">Gemini</option><option value="groq">Groq</option>';
+        aiProviderSelect.innerHTML = '<option value="gemini">Google Cloud Agent Builder</option>';
         aiProviderSelect.disabled = false;
         refreshScrapeButtonState();
     }

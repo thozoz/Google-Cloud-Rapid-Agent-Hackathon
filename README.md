@@ -1,125 +1,95 @@
-# Hackathon Discovery & Matching Agent
+# Hackathon Discovery & Matching Agent (Powered by ADK & MongoDB MCP)
 
-A small FastAPI application that scrapes hackathons from Devpost, scores them against a saved developer profile using an LLM, and provides a browser dashboard to review and track opportunities. Supports multiple AI providers (Gemini, Groq, OpenRouter, Cerebras, Ollama) and can send deadline reminders via Discord webhooks.
+A FastAPI application that scrapes hackathons from Devpost, scores them against a saved developer profile, and acts as an **autonomous agent** using **Google Cloud Agent Builder (ADK)** and the **MongoDB MCP Server** to query, filter, and track hackathons via natural language.
 
-## Why This Exists
-
-Finding suitable hackathons is time-consuming and fragmented. This agent automates the end-to-end workflow—scrape, score, track, and remind—so developers can focus on building instead of searching.
-
-Created for the Google Cloud Agent Builder Hackathon. Uses MongoDB for persistence and supports multiple AI providers for profile-driven matching.
+Built for the **Google Cloud Agent Builder Hackathon** (MongoDB Track).
 
 ## Key Features
 
-- Scrape active and upcoming hackathons from Devpost.
-- Score hackathons against your profile using your choice of AI provider.
-- Persist a developer profile and scored hackathons in MongoDB.
-- Track/untrack hackathons and receive optional deadline reminders via Discord.
-- Lightweight dashboard with minimalist dark theme and profile-based recommendations.
+- **Google ADK Orchestration**: Uses Google's official `google-adk` framework to create a robust, production-ready AI Agent running `gemini-2.5-flash`.
+- **MongoDB MCP Server Integration**: Instead of hardcoding search filters, the Agent connects to the database via the official MongoDB MCP server (`@modelcontextprotocol/server-mongodb`). This gives the Agent the "superpower" to independently execute raw NoSQL queries and explore the database structure dynamically.
+- **Move Beyond Chat**: The Agent actively manages your pipeline. Tell it to *"Track the AI hackathon ending next week,"* and it will formulate the correct `mongodb_update` request via MCP to update the database for you.
+- **Devpost Scraper**: A background APScheduler job automatically scrapes active and upcoming hackathons into MongoDB Atlas.
+- **Lightweight Dashboard**: A sleek, dark-themed UI that displays AI-scored recommendations, tracked projects, and features an embedded **Agent Chat**.
 
-## Project Layout
+## Architecture & Project Layout
 
-- `src/main.py` - FastAPI application, routes, and background job orchestration.
-- `src/matcher.py` - AI prompt construction and scoring logic for supported providers.
-- `src/scraper.py` - Devpost scraping utilities.
-- `src/database.py` - MongoDB helpers and persistence layer.
-- `src/reminder.py` - Deadline checking and notification logic.
-- `src/static/index.html` - Dashboard frontend.
-- `src/static/app.js` - Frontend behavior and provider selection UI.
-- `src/static/index.css` - Dashboard styles.
+- `src/main.py` - FastAPI application, REST endpoints, and background job orchestration.
+- `src/agent.py` - Google ADK `InMemoryRunner` orchestration. Mounts the MongoDB MCP tools securely and exposes the conversational loop.
+- `src/matcher.py` - Background AI scoring logic to pre-evaluate new hackathons against the user's profile.
+- `src/scraper.py` - Devpost HTML/JSON scraping utilities.
+- `src/database.py` - Internal MongoDB helpers.
+- `src/static/` - Frontend dashboard and real-time Agent Chat UI (HTML/JS/Tailwind CSS).
+- `whattomake.md` & `ADK_TROUBLESHOOTING_LOG.md` - Documentation of the hackathon build process and ADK integration challenges.
 
 ## Quick Start
 
-1. Create and activate a virtual environment.
+1. **Clone and setup a virtual environment:**
 
 	 - Windows (PowerShell):
-
 		 ```powershell
+		 python -m venv .venv
 		 .venv\Scripts\Activate.ps1
 		 ```
-
 	 - Unix / macOS:
-
 		 ```bash
 		 python3 -m venv .venv
 		 source .venv/bin/activate
 		 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
+	```bash
+	pip install -r requirements.txt
+	```
+	*(This will install FastAPI, google-adk, mcp, pymongo, etc.)*
 
-```bash
-pip install -r requirements.txt
-```
+3. **Install the MongoDB MCP Server:**
+	```bash
+	npm install -g @modelcontextprotocol/server-mongodb
+	```
 
-3. Create a `.env` file in the project root. You can copy `.env.example` if provided and fill in your values.
+4. **Environment Variables:**
+	Create a `.env` file in the project root:
+	```env
+	# MongoDB Atlas connection string
+	MONGODB_URI=mongodb+srv://<user>:<password>@cluster0...
 
-## Environment Variables
+	# The Agent uses Vertex AI via Application Default Credentials
+	GOOGLE_GENAI_USE_VERTEXAI=TRUE
+	GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+	GOOGLE_CLOUD_LOCATION=us-central1
+	```
 
-Required:
-
-- `MONGODB_URI` — MongoDB connection string (Atlas or local).
-- `GEMINI_API_KEY` — API key for Google Gemini (used when `provider=gemini`).
-- `GROQ_API_KEY` — API key for Groq (used when `provider=groq`).
-- `OPENROUTER_API_KEY` — API key for OpenRouter (used when `provider=openrouter`). Sign up at [openrouter.ai](https://openrouter.ai).
-- `CEREBRAS_API_KEY` — API key for Cerebras (used when `provider=cerebras`). Sign up at [cerebras.ai](https://cerebras.ai).
-- `OLLAMA_ENDPOINT` — Ollama server endpoint (default: `http://localhost:11434/v1`). Change if Ollama runs on a different host or port.
-- `OLLAMA_MODEL` — Model to use with Ollama (default: `gemma4:e4b`). Run `ollama list` to see installed models.
-
-Optional:
-
-- `DISCORD_WEBHOOK_URL` — Discord webhook URL for deadline reminders.
+5. **Authenticate with Google Cloud:**
+	Since we are using Vertex AI, ensure your machine is authenticated:
+	```bash
+	gcloud auth application-default login
+	```
 
 ## Run the App
 
-Start the API (development mode):
-
+Start the API:
 ```bash
-.venv\Scripts\python -m uvicorn src.main:app --reload
+python -m uvicorn src.main:app --reload
 ```
 
 Open the dashboard at:
-
 http://127.0.0.1:8000
 
-## AI Providers
+Navigate to the **Agent Chat** tab to start talking to your database! Try asking:
+* *"Find me AI hackathons ending in June"*
+* *"What collections are in this database?"*
+* *"Track the last hackathon you mentioned."*
 
-The app supports selecting which AI provider to use for scoring. Trigger via `?provider=<name>`:
+## How the Agent Works (Google Cloud Agent Builder & MCP)
 
-- **Gemini**: `gemini-2.0-flash`
-- **Groq**: `llama-3.3-70b-versatile` (Llama 3.3, 70B)
-- **OpenRouter**: `qwen/qwen3-next-80b-a3b-instruct:free` (free tier)
-- **Cerebras**: `qwen-3-235b-a22b-instruct-2507` (free tier)
-- **Ollama**: `gemma4:e4b` (local, configurable via `OLLAMA_MODEL`)
+The app leverages **Google's Agent Development Kit (ADK)** to scaffold a `gemini-2.5-flash` agent. 
+We use the ADK's `McpToolset` to mount the Node.js `mongodb-mcp-server` via standard `stdio` transport.
 
-Trigger scraping with a specific provider:
+When you ask the Agent a question in the UI:
+1. The ADK `InMemoryRunner` parses your intent.
+2. The Agent invokes a tool call (e.g., `mongodb_find` or `mongodb_update`).
+3. The MCP server executes the raw NoSQL command securely against your MongoDB Atlas cluster.
+4. The Agent parses the MCP response and summarizes the results for you in a human-readable format.
 
-```
-POST /api/scrape?provider=gemini
-POST /api/scrape?provider=groq
-POST /api/scrape?provider=openrouter
-POST /api/scrape?provider=cerebras
-POST /api/scrape?provider=ollama
-```
-
-Other endpoints:
-
-```
-GET /api/providers           # List available providers
-GET /api/profile             # Get saved profile
-POST /api/profile            # Save profile
-GET /api/hackathons          # List scored hackathons
-POST /api/track              # Track/untrack a hackathon
-GET /api/tracked             # List tracked projects
-POST /api/remind             # Trigger deadline reminders
-```
-
-## Background Jobs
-
-- **Scraping**: Runs every 12 hours automatically.
-- **Deadline Reminders**: Runs every 24 hours automatically.
-- **Analysis**: Scores capped 1-10, reasons truncated to ~150 characters for readability.
-
-## Troubleshooting
-
-- **Dashboard won't load**: Verify `.env` variables and that MongoDB is reachable.
-- **Scraping fails**: Check API key configuration and network connectivity.
-- **No matches returned**: Verify that Devpost has active/upcoming hackathons available.
+*(Note: We implemented a schema sanitizer within the MCP client interceptor to ensure full compatibility between the complex JSON Schemas returned by the MongoDB MCP server and the strict Pydantic validation used by the `google-adk`).*

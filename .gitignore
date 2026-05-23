@@ -1,6 +1,6 @@
 # Local environment files
 .env
-
+.opencode
 
 # Python
 __pycache__/
@@ -9,3 +9,4 @@ __pycache__/
 
 # VS Code
 .vscode/
+AGENTS.md

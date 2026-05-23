@@ -188,6 +188,9 @@
 <button class="tab-btn pb-3 px-1 hover:text-primary transition-colors flex items-center gap-2 text-text-muted" data-tab="tab-tracked">
 <span class="material-symbols-outlined text-sm" style="color: rgb(232, 232, 232);">fact_check</span> Tracked
                 </button>
+<button class="tab-btn pb-3 px-1 hover:text-primary transition-colors flex items-center gap-2 text-text-muted" data-tab="tab-chat">
+<span class="material-symbols-outlined text-sm" style="color: rgb(232, 232, 232);">forum</span> Agent Chat
+                </button>
 </div>
 <!-- Tab 1: Recommendations List -->
 <div class="tab-content block" id="tab-recommendations">
@@ -206,6 +209,18 @@
 <span class="" style="color: rgb(232, 232, 232);">→</span> No hackathons tracked yet.
                     </div>
 </div>
+</div>
+<!-- Tab 3: Agent Chat -->
+<div class="tab-content hidden h-full flex flex-col" id="tab-chat">
+<div class="flex-1 overflow-y-auto mb-4 bg-[#0a0a0a] border border-border-subtle p-4 rounded" id="chat-history">
+<div class="mb-4">
+<span class="font-bold text-primary">Agent:</span> Hello! I am the Hackathon Discovery Agent. Ask me to find hackathons matching specific criteria, or tell me to track one for you! (I am powered by Gemini and MongoDB MCP).
+</div>
+</div>
+<form id="chat-form" class="flex gap-2">
+<input type="text" id="chat-input" placeholder="e.g. Find me AI hackathons ending in June..." class="flex-1" required autocomplete="off">
+<button type="submit" id="chat-submit" class="bg-primary text-on-primary font-bold py-2 px-4 rounded hover:opacity-80 transition-opacity disabled:opacity-50">Send</button>
+</form>
 </div>
 </div>
 </main>
