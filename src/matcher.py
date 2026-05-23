@@ -81,7 +81,7 @@ def _match_with_gemini(profile: dict, hackathons: list) -> list:
         client = genai.Client(api_key=api_key)
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-pro",
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
