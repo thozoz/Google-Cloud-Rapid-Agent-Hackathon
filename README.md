@@ -6,7 +6,7 @@ Built for the **Google Cloud Agent Builder Hackathon** (MongoDB Track).
 
 ## Key Features
 
-- **Google ADK Orchestration**: Uses Google's official `google-adk` framework to create a robust, production-ready AI Agent running `gemini-2.5-pro`.
+- **Google ADK Orchestration**: Uses Google's official `google-adk` framework to create a robust, production-ready AI Agent running `gemini-3.5-flash`.
 - **MongoDB MCP Server Integration**: Instead of hardcoding search filters, the Agent connects to the database via the official MongoDB MCP server (`@modelcontextprotocol/server-mongodb`). This gives the Agent the "superpower" to independently execute raw NoSQL queries and explore the database structure dynamically.
 - **Move Beyond Chat**: The Agent actively manages your pipeline. Tell it to *"Track the AI hackathon ending next week,"* and it will formulate the correct `mongodb_update` request via MCP to update the database for you.
 - **Devpost Scraper**: A background APScheduler job automatically scrapes active and upcoming hackathons into MongoDB Atlas.
@@ -83,7 +83,7 @@ Navigate to the **Agent Chat** tab to start talking to your database! Try asking
 
 ## How the Agent Works (Google Cloud Agent Builder & MCP)
 
-The app leverages **Google's Agent Development Kit (ADK)** to scaffold a `gemini-2.5-pro` agent. 
+The app leverages **Google's Agent Development Kit (ADK)** to scaffold a `gemini-3.5-flash` agent. 
 We use the ADK's `McpToolset` to mount the Node.js `mongodb-mcp-server` via standard `stdio` transport.
 
 When you ask the Agent a question in the UI:

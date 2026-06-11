@@ -8,7 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <!-- Material Symbols -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -88,8 +89,24 @@
             }
         }
     </script>
-<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: #0a0a0a !important; border: 1px solid #2a2a2a !important; border-radius: 4px; color: #e8e8e8 !important; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8 !important; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; }</style>
-<style>body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } .mono { font-family: 'IBM Plex Mono', monospace; } input[type="text"], select { background-color: #0a0a0a !important; border: 1px solid #2a2a2a !important; border-radius: 4px; color: #e8e8e8 !important; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8 !important; ring: 1px solid #e8e8e8; } .tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } @keyframes spin { 100% { transform: rotate(360deg); } } .fa-spin { animation: spin 1s linear infinite; } #toast-container .toast { background: rgba(0, 0, 0, 0.8) !important; color: #e8e8e8 !important; padding: 18px 26px !important; }</style></head>
+<style>
+body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e2e1; } 
+.mono { font-family: 'IBM Plex Mono', monospace; } 
+input[type="text"], select { background-color: #0a0a0a !important; border: 1px solid #2a2a2a !important; border-radius: 4px; color: #e8e8e8 !important; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 100%; } 
+input[type="text"]:focus, select:focus { outline: none; border-color: #e8e8e8 !important; ring: 1px solid #e8e8e8; } 
+.tab-btn.active { border-bottom: 2px solid #e8e8e8; color: #e8e8e8; } 
+@keyframes spin { 100% { transform: rotate(360deg); } } 
+.fa-spin { animation: spin 1s linear infinite; } 
+#toast-container .toast { background: rgba(0, 0, 0, 0.8) !important; color: #e8e8e8 !important; padding: 18px 26px !important; }
+/* Markdown prose overrides for dark theme */
+.prose { color: #e8e8e8; }
+.prose a { color: #00ff87; text-decoration: none; font-weight: normal; }
+.prose a:hover { text-decoration: underline; }
+.prose strong { color: #fff; font-weight: 600; }
+.prose p { margin-top: 0.5em; margin-bottom: 0.5em; }
+.prose ul, .prose ol { margin-top: 0.5em; margin-bottom: 0.5em; }
+.prose li { margin-top: 0.25em; margin-bottom: 0.25em; }
+</style></head>
 <body class="min-h-screen flex text-body-md antialiased selection:bg-primary selection:text-background">
 <!-- Sidebar - Config Panel -->
 <aside class="w-80 bg-[#131313] border-r border-[#1f1f1f] flex flex-col p-6 overflow-y-auto">
@@ -179,9 +196,9 @@
 </div>
 </header>
 <!-- Main Content Area -->
-<div class="flex-1 overflow-y-auto p-8 bg-background">
+<div class="flex-1 flex flex-col overflow-hidden px-8 pt-8 pb-4 bg-background">
 <!-- Tab Navigation -->
-<div class="border-b border-border-subtle mb-6 flex gap-6 font-label-mono">
+<div class="border-b border-border-subtle mb-6 flex gap-6 font-label-mono shrink-0">
 <button class="tab-btn pb-3 px-1 text-on-surface hover:text-primary transition-colors flex items-center gap-2 active border-b-2 border-[#e8e8e8] text-[#e8e8e8]" data-tab="tab-recommendations">
 <span class="material-symbols-outlined text-sm" style="color: rgb(232, 232, 232);">radar</span> Recommendations
                 </button>
@@ -193,7 +210,7 @@
                 </button>
 </div>
 <!-- Tab 1: Recommendations List -->
-<div class="tab-content block" id="tab-recommendations">
+<div class="tab-content block overflow-y-auto flex-1" id="tab-recommendations">
 <!-- Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="recommendations-grid">
 <div class="col-span-full py-12 mono text-text-muted flex items-center gap-2">
@@ -202,7 +219,7 @@
 </div>
 </div>
 <!-- Tab 2: Tracked Dashboard -->
-<div class="tab-content hidden" id="tab-tracked">
+<div class="tab-content hidden overflow-y-auto flex-1" id="tab-tracked">
 <!-- Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4" id="tracked-grid">
 <div class="col-span-full py-12 mono text-text-muted flex items-center gap-2">
@@ -211,15 +228,18 @@
 </div>
 </div>
 <!-- Tab 3: Agent Chat -->
-<div class="tab-content hidden h-full flex flex-col" id="tab-chat">
-<div class="flex-1 overflow-y-auto mb-4 bg-[#0a0a0a] border border-border-subtle p-4 rounded" id="chat-history">
+<div class="tab-content hidden flex-1 flex flex-col min-h-0" id="tab-chat">
+<div class="flex-1 overflow-y-auto mb-4 bg-[#0a0a0a] border border-[#2a2a2a] p-5 rounded-sm" id="chat-history">
 <div class="mb-4">
-<span class="font-bold text-primary">Agent:</span> Hello! I am the Hackathon Discovery Agent. Ask me to find hackathons matching specific criteria, or tell me to track one for you! (I am powered by Gemini and MongoDB MCP).
+<span class="font-bold text-primary">Agent:</span> 
+<div class="text-[#e8e8e8] prose prose-invert prose-sm max-w-none mt-1 leading-normal" style="font-size: 13px;">
+Hello! I am the Hackathon Discovery Agent. Ask me to find hackathons matching specific criteria, or tell me to track one for you! (I am powered by Gemini and MongoDB MCP).
 </div>
 </div>
-<form id="chat-form" class="flex gap-2">
-<input type="text" id="chat-input" placeholder="e.g. Find me AI hackathons ending in June..." class="flex-1" required autocomplete="off">
-<button type="submit" id="chat-submit" class="bg-primary text-on-primary font-bold py-2 px-4 rounded hover:opacity-80 transition-opacity disabled:opacity-50">Send</button>
+</div>
+<form id="chat-form" class="flex gap-2 shrink-0 pb-2">
+<input type="text" id="chat-input" placeholder="e.g. Find me AI hackathons ending in June..." class="flex-1 rounded-sm border-[#2a2a2a] bg-[#0a0a0a]" required autocomplete="off">
+<button type="submit" id="chat-submit" class="bg-primary text-on-primary font-bold py-2 px-6 rounded-sm hover:opacity-80 transition-opacity disabled:opacity-50">Send</button>
 </form>
 </div>
 </div>

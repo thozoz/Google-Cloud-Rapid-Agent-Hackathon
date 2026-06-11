@@ -78,7 +78,7 @@ class HackathonAgent:
         print("[Agent] Creating Agent instance...")
         agent = Agent(
             name="hackathon_agent",
-            model="gemini-2.5-pro",
+            model="gemini-3.5-flash",
             instruction=(
                 "You are a Hackathon Discovery AI Agent built with Google Agent Development Kit (ADK). "
                 "You have access to a MongoDB database via tools. "

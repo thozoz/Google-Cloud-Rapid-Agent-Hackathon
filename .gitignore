@@ -1,7 +1,8 @@
 # Local environment files
 .env
 .opencode
-
+.claude
+temp
 # Python
 __pycache__/
 *.pyc

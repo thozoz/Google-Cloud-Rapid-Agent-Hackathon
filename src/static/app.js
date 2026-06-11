@@ -126,7 +126,12 @@ async function handleChatSubmit(e) {
         const agentMsgDiv = document.createElement("div");
         agentMsgDiv.className = "mb-4";
         if (data.status === "success") {
-            agentMsgDiv.innerHTML = `<span class="font-bold text-primary">Agent:</span> <span class="text-[#e8e8e8]">${escapeHTML(data.response).replace(/\\n/g, '<br>')}</span>`;
+            // Apply DOMPurify (if available) or just parse markdown
+            const htmlContent = marked.parse(data.response);
+            agentMsgDiv.innerHTML = `
+                <span class="font-bold text-primary">Agent:</span> 
+                <div class="text-[#e8e8e8] prose prose-invert prose-sm max-w-none mt-1 leading-normal" style="font-size: 13px;">${htmlContent}</div>
+            `;
         } else {
             agentMsgDiv.innerHTML = `<span class="font-bold text-error">Agent Error:</span> <span class="text-error">${escapeHTML(data.message || "Unknown error")}</span>`;
         }

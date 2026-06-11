@@ -117,7 +117,7 @@ async def list_providers():
             {
                 "id": "gemini",
                 "label": "Google Cloud Agent Builder (Vertex AI)",
-                "model": "gemini-2.5-pro",
+                "model": "gemini-3.5-flash",
                 "configured": True,
             }
         ]
