@@ -1,3 +1,5 @@
+> ⚠️ **Hackathon submission (June 2026). Archived and not maintained.**
+
 # Hackathon Discovery & Matching Agent (Powered by ADK & MongoDB MCP)
 
 A FastAPI application that scrapes hackathons from Devpost, scores them against a saved developer profile, and acts as an **autonomous agent** using **Google Cloud Agent Builder (ADK)** and the **MongoDB MCP Server** to query, filter, and track hackathons via natural language.
